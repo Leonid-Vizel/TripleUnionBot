@@ -11,6 +11,7 @@ namespace TripleUnionBot
         public decimal Money { get; private set; }
         public List<HolidayInfo> Holidays { get; private set; }
         public List<AdditionalTransaction> AdditionalTransactions { get; private set; }
+        public string MainChannelId { get; private set; }
 
         public UnionInfo()
         {
@@ -26,14 +27,19 @@ namespace TripleUnionBot
             AdditionalTransactions = transactions.ToList();
         }
 
-        public HolidayInfo AddHoliday()
+        public void SetChannelId()
         {
 
         }
 
+        public HolidayInfo AddHoliday()
+        {
+            return null;
+        }
+
         public AdditionalTransaction AddTrasaction()
         {
-
+            return null;
         }
 
         public void RemoveHoliday()
@@ -43,7 +49,7 @@ namespace TripleUnionBot
 
         public HolidayInfo CheckIfDayIsHoliday()
         {
-
+            return null;
         }
     }
 }
