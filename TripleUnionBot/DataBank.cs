@@ -1,4 +1,6 @@
-﻿namespace TripleUnionBot
+﻿using TripleUnionBot.Classes;
+
+namespace TripleUnionBot
 {
     internal static class DataBank
     {

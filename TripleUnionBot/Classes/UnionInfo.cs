@@ -4,13 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TripleUnionBot
+namespace TripleUnionBot.Classes
 {
     internal class UnionInfo
     {
         public decimal Money { get; private set; }
         public List<HolidayInfo> Holidays { get; private set; }
         public List<AdditionalTransaction> AdditionalTransactions { get; private set; }
+        public List<CreditInfo> Credits { get; private set; }
         public string MainChannelId { get; private set; }
 
         public UnionInfo()
@@ -18,13 +19,15 @@ namespace TripleUnionBot
             Money = 0;
             Holidays = new List<HolidayInfo>();
             AdditionalTransactions = new List<AdditionalTransaction>();
+            Credits = new List<CreditInfo>();
         }
 
-        public UnionInfo(decimal money, IEnumerable<HolidayInfo> holidays, IEnumerable<AdditionalTransaction> transactions)
+        public UnionInfo(decimal money, IEnumerable<HolidayInfo> holidays, IEnumerable<AdditionalTransaction> transactions, IEnumerable<CreditInfo> credits)
         {
             Money = money;
             Holidays = holidays.ToList();
             AdditionalTransactions = transactions.ToList();
+            Credits = credits.ToList();
         }
 
         public void SetChannelId()
