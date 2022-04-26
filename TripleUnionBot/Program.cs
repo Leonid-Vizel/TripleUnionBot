@@ -44,26 +44,25 @@ async Task MyButtonHandler(SocketMessageComponent component)
     switch (component.Data.CustomId)
     {
         case "InfoMenu":
-            //Создаю Embed
             embedBuilder.Title = "Состояние казны";
             embedBuilder.AddField("Баланс:", $"{DataBank.UnionInfo.Money} ₽", true);
             embedBuilder.AddField("Процент:", "10%", true);
-            if (false)
+            HolidayInfo? foundHoliday = DataBank.UnionInfo.CheckIfDayIsHoliday(DateTime.Today);
+            if (foundHoliday != null)
             {
-                embedBuilder.AddField("Сегодня:", "[Эта строка только если сегодня праздник]");
+                embedBuilder.AddField("Сегодня:", foundHoliday.Name);
             }
-            //Создаю кнопки
             buttonBuilder.WithButton("Вклад", "MoneyControl");
             buttonBuilder.WithButton("Кредиты", "CreditsControl");
             buttonBuilder.WithButton("Праздники", "HolidayControl");
-
+            buttonBuilder.WithButton("Настройки", "Settings");
             await component.RespondAsync(null, new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
             break;
         case "MoneyControl":
             embedBuilder.Title = "Информация о вкладе";
             embedBuilder.AddField("Баланс:", $"{DataBank.UnionInfo.Money} ₽", true);
             embedBuilder.AddField("Процент:", "10%", true);
-            //Создаю кнопки
+            
             buttonBuilder.WithButton("Добавить", "AddMoney");
             buttonBuilder.WithButton("Потратить", "SpendMoney");
             buttonBuilder.WithButton("Изменить процент", "SetPercent");
@@ -74,7 +73,7 @@ async Task MyButtonHandler(SocketMessageComponent component)
             embedBuilder.Title = "Информация о кредитах";
             embedBuilder.AddField("Всего кредитов:", DataBank.UnionInfo.Credits.Count, true);
             embedBuilder.AddField("Процент:", "10%", true);
-            //Создаю кнопки
+            
             buttonBuilder.WithButton("Добавить кредит", "AddMoney");
             buttonBuilder.WithButton("Закрыть кредит", "SpendMoney");
             buttonBuilder.WithButton("Назад", "InfoMenu");
@@ -118,7 +117,7 @@ async Task MyButtonHandler(SocketMessageComponent component)
             {
                 embedBuilder.AddField($"Список", "🕸Здесь пока пусто🕸");
             }
-            //Создаю кнопки
+            
             buttonBuilder.WithButton("Добавить", "AddHoliday");
             buttonBuilder.WithButton("Отменить праздник", "RemoveHoliday");
             buttonBuilder.WithButton("Назад", "InfoMenu");
@@ -143,16 +142,17 @@ async Task SlashCommandHandler(SocketSlashCommand command)
             builder.Footer = footerbuilder;
             builder.AddField("Баланс:", $"{DataBank.UnionInfo.Money} ₽", true);
             builder.AddField("Процент:", "10%", true);
-            if (false)
+            HolidayInfo? info = DataBank.UnionInfo.CheckIfDayIsHoliday(DateTime.Today);
+            if (info != null)
             {
-                builder.AddField("Сегодня:", "[Эта строка только если сегодня праздник]");
+                builder.AddField("Сегодня:", info.Name);
             }
             //Создаю кнопки
             ComponentBuilder buttonBuilder = new ComponentBuilder();
             buttonBuilder.WithButton("Вклад", "MoneyControl");
             buttonBuilder.WithButton("Кредиты", "CreditsControl");
             buttonBuilder.WithButton("Праздники", "HolidayControl");
-
+            buttonBuilder.WithButton("Настройки", "Settings");
             await command.RespondAsync(null, new Embed[1] { builder.Build() }, components: buttonBuilder.Build());
             break;
     }

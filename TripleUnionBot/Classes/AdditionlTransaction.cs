@@ -6,13 +6,13 @@ using System.Threading.Tasks;
 
 namespace TripleUnionBot.Classes
 {
-    internal class AdditionalTransaction
+    internal class AdditionTransaction
     {
         public int Id { get; private set; }
         public string Username { get; private set; }
         public decimal Money { get; private set; }
 
-        public AdditionalTransaction(int id, string username, decimal money)
+        public AdditionTransaction(int id, string username, decimal money)
         {
             Id = id;
             Username = username;

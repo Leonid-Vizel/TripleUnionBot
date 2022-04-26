@@ -10,7 +10,8 @@ namespace TripleUnionBot.Classes
     {
         public decimal Money { get; private set; }
         public List<HolidayInfo> Holidays { get; private set; }
-        public List<AdditionalTransaction> AdditionalTransactions { get; private set; }
+        public List<AdditionTransaction> Additionals { get; private set; }
+        public List<WasteTransaction> Wastes { get; private set; }
         public List<CreditInfo> Credits { get; private set; }
         public string MainChannelId { get; private set; }
 
@@ -18,36 +19,46 @@ namespace TripleUnionBot.Classes
         {
             Money = 0;
             Holidays = new List<HolidayInfo>();
-            AdditionalTransactions = new List<AdditionalTransaction>();
+            Additionals = new List<AdditionTransaction>();
             Credits = new List<CreditInfo>();
         }
 
-        public UnionInfo(decimal money, IEnumerable<HolidayInfo> holidays, IEnumerable<AdditionalTransaction> transactions, IEnumerable<CreditInfo> credits)
+        public UnionInfo(decimal money, IEnumerable<HolidayInfo> holidays, IEnumerable<AdditionTransaction> transactions, IEnumerable<CreditInfo> credits)
         {
             Money = money;
             Holidays = holidays.ToList();
-            AdditionalTransactions = transactions.ToList();
+            Additionals = transactions.ToList();
             Credits = credits.ToList();
         }
 
-        public void SetChannelId()
+        public bool SetChannelId(string channelId)
         {
-
+            if (channelId.Equals(MainChannelId))
+            {
+                return false;
+            }
+            MainChannelId = channelId;
+            //DbInteraction
+            return true;
         }
 
-        public HolidayInfo AddHoliday()
+        public bool ExecuteWaste(WasteTransaction transaction)
         {
-            return null;
+            if (transaction.Money > Money)
+            {
+                return false;
+            }
+            Money -= transaction.Money;
+            Wastes.Add(transaction);
+            //Db interation
+            return true;
         }
 
-        public AdditionalTransaction AddTrasaction()
+        public void ExecuteAddition(AdditionTransaction transaction)
         {
-            return null;
-        }
-
-        public void RemoveHoliday()
-        {
-
+            Money += transaction.Money;
+            Additionals.Add(transaction);
+            //Db interation
         }
 
         public HolidayInfo? CheckIfDayIsHoliday(DateTime dateCheck)
