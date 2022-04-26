@@ -9,6 +9,7 @@ DiscordSocketClient _client = new DiscordSocketClient(); //<-- Создание 
 CommandHandler handler = new CommandHandler(_client, new CommandService(new CommandServiceConfig()));
 await handler.InstallCommandsAsync(); //<- Настройка комманд бота
 _client.Ready += ConfigureCommands;
+_client.ButtonExecuted += MyButtonHandler;
 _client.SlashCommandExecuted += SlashCommandHandler;
 var token = File.ReadAllText("bot.token"); //<-- Считывание токена бота
 await _client.LoginAsync(TokenType.Bot, token); //<-- Бот логинится
@@ -30,6 +31,36 @@ async Task ConfigureCommands()
     catch (Exception ex)
     {
         Console.WriteLine($"Shit, fuck: {ex}");
+    }
+}
+
+async Task MyButtonHandler(SocketMessageComponent component)
+{
+    switch (component.Data.CustomId)
+    {
+        case "MoneyControl":
+            EmbedBuilder builder = new EmbedBuilder();
+            builder.Title = "Изформация о вкладе";
+            EmbedFooterBuilder footerbuilder = new EmbedFooterBuilder();
+            footerbuilder.Text = $"Информация на {DateTime.Now}";
+            builder.Footer = footerbuilder;
+            builder.AddField("Баланс:", $"{DataBank.UnionInfo.Money} ₽", true);
+            builder.AddField("Процент:", "10%", true);
+            //Создаю кнопки
+            ComponentBuilder buttonBuilder = new ComponentBuilder();
+            buttonBuilder.WithButton("Добвить", "AddMoney");
+            buttonBuilder.WithButton("Потратить", "SpendMoney");
+            buttonBuilder.WithButton("Изменить", "SetPercent");
+            buttonBuilder.WithButton("Назад", "MoneyControl");
+            await component.RespondAsync(null, new Embed[1] { builder.Build() }, components: buttonBuilder.Build());
+            await component.Message.DeleteAsync();
+            break;
+        case "CreditsControl":
+            await component.RespondAsync($"{component.User.Mention} has clicked the button!");
+            break;
+        case "HolidayControl":
+            await component.RespondAsync($"{component.User.Mention} has clicked the button!");
+            break;
     }
 }
 
