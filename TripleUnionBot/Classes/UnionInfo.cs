@@ -50,9 +50,8 @@ namespace TripleUnionBot.Classes
 
         }
 
-        public HolidayInfo CheckIfDayIsHoliday()
-        {
-            return null;
-        }
+        public HolidayInfo? CheckIfDayIsHoliday(DateTime dateCheck)
+            => Holidays.FirstOrDefault(x => x.Date.Day == dateCheck.Day && x.Date.Month == dateCheck.Month);
+
     }
 }

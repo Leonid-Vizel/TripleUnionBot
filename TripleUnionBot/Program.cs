@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using System.Text;
 using TripleUnionBot;
 using TripleUnionBot.Classes;
 
@@ -80,7 +81,48 @@ async Task MyButtonHandler(SocketMessageComponent component)
             await component.RespondAsync(null, new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
             break;
         case "HolidayControl":
-            await component.RespondAsync($"{component.User.Mention} has clicked the button!");
+            embedBuilder.Title = "Информация о праздниках";
+            embedBuilder.AddField("Всего праздников:", DataBank.UnionInfo.Credits.Count, true);
+            HolidayInfo? foundInfo = DataBank.UnionInfo.CheckIfDayIsHoliday(DateTime.Today);
+            if (foundInfo != null)
+            {
+                embedBuilder.AddField("Сегодня:", foundInfo.Name, true);
+            }
+            if (DataBank.UnionInfo.Credits.Count > 0)
+            {
+                StringBuilder listBuilder = new StringBuilder();
+                int pageCount = 0;
+                foreach (HolidayInfo info in DataBank.UnionInfo.Holidays.OrderBy(x => x.Date))
+                {
+                    string line = $"[{info.Date.ToString("dd.MM.yyyy")}] {info.Name}";
+                    if (listBuilder.Length + line.Length > 1024)
+                    {
+                        embedBuilder.AddField($"Страница {++pageCount}", listBuilder.ToString());
+                        listBuilder.Clear();
+                    }
+                    else
+                    {
+                        listBuilder.AppendLine($"[{info.Date.ToString("dd.MM.yyyy")}] {info.Name}");
+                    }
+                }
+                if (pageCount == 0)
+                {
+                    embedBuilder.AddField($"Список", listBuilder.ToString());
+                }
+                else if (listBuilder.Length > 0)
+                {
+                    embedBuilder.AddField($"Страница {++pageCount}", listBuilder.ToString());
+                }
+            }
+            else
+            {
+                embedBuilder.AddField($"Список", "🕸Здесь пока пусто🕸");
+            }
+            //Создаю кнопки
+            buttonBuilder.WithButton("Добавить", "AddHoliday");
+            buttonBuilder.WithButton("Отменить праздник", "RemoveHoliday");
+            buttonBuilder.WithButton("Назад", "InfoMenu");
+            await component.RespondAsync(null, new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
             break;
         default:
             return;
@@ -111,7 +153,7 @@ async Task SlashCommandHandler(SocketSlashCommand command)
             buttonBuilder.WithButton("Кредиты", "CreditsControl");
             buttonBuilder.WithButton("Праздники", "HolidayControl");
 
-            await command.RespondAsync(null, new Embed[1] { builder.Build() },components: buttonBuilder.Build());
+            await command.RespondAsync(null, new Embed[1] { builder.Build() }, components: buttonBuilder.Build());
             break;
     }
 }
