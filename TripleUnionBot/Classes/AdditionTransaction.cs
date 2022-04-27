@@ -1,12 +1,12 @@
 ﻿namespace TripleUnionBot.Classes
 {
-    internal class WasteTransaction
+    internal class AdditionTransaction
     {
         public int Id { get; private set; }
         public UnionMember Member { get; private set; }
         public decimal Money { get; private set; }
 
-        public WasteTransaction(int id, UnionMember member, decimal money)
+        public AdditionTransaction(int id, UnionMember member, decimal money)
         {
             Id = id;
             Member = member;
