@@ -108,6 +108,15 @@ namespace TripleUnionBot.Classes
             buttonBuilder.WithButton("Назад", "MoneyControl");
         }
 
+        public static void ApplyRemoveMoneyMenu(ComponentBuilder buttonBuilder)
+        {
+            buttonBuilder.WithButton("Эмиль Максудов", "EmilMaksudovSpend");
+            buttonBuilder.WithButton("Эмиль Мумджи", "EmilMumdzhiSpend");
+            buttonBuilder.WithButton("Никита Гордеев", "NikitaSpend");
+            buttonBuilder.WithButton("Общее вложение", "GeneralSpend");
+            buttonBuilder.WithButton("Назад", "MoneyControl");
+        }
+
         public static ModalBuilder ApplyInestment(string customId)
         {
             return new ModalBuilder()
@@ -115,6 +124,21 @@ namespace TripleUnionBot.Classes
                 .WithTitle("Добавление средств")
                 .AddTextInput(new TextInputBuilder()
                     .WithLabel("Сумма дополнительного перевода:")
+                    .WithCustomId($"{customId}Input")
+                    .WithStyle(TextInputStyle.Short)
+                    .WithMinLength(1)
+                    .WithMaxLength(10)
+                    .WithRequired(true)
+                    .WithPlaceholder("228"));
+        }
+
+        public static ModalBuilder ApplySpend(string customId)
+        {
+            return new ModalBuilder()
+                .WithCustomId($"{customId}Modal")
+                .WithTitle("Снятие средств")
+                .AddTextInput(new TextInputBuilder()
+                    .WithLabel("Сумма снятия:")
                     .WithCustomId($"{customId}Input")
                     .WithStyle(TextInputStyle.Short)
                     .WithMinLength(1)

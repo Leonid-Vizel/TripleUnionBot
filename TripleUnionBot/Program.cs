@@ -63,11 +63,21 @@ async Task HandleButtonClick(SocketMessageComponent component)
             EmbedButtonMenus.ApplyAddMoneyMenu(buttonBuilder);
             await component.RespondAsync("Выберите от лица кого будет начисление:", components: buttonBuilder.Build());
             break;
+        case "SpendMoneyMenu":
+            EmbedButtonMenus.ApplyRemoveMoneyMenu(buttonBuilder);
+            await component.RespondAsync("Выберите от лица кого будет начисление:", components: buttonBuilder.Build());
+            break;
         case "EmilMaksudovInvestment":
         case "EmilMumdzhiInvestment":
         case "NikitaInvestment":
         case "GeneralInvestment":
             await component.RespondWithModalAsync(EmbedButtonMenus.ApplyInestment(component.Data.CustomId).Build());
+            break;
+        case "EmilMaksudovSpend":
+        case "EmilMumdzhiSpend":
+        case "NikitaSpend":
+        case "GeneralSpend":
+            await component.RespondWithModalAsync(EmbedButtonMenus.ApplySpend(component.Data.CustomId).Build());
             break;
         default:
             return;
@@ -105,19 +115,9 @@ async Task HandleModalSubmit(SocketModal modal)
                 if (parseResult > 0)
                 {
                     DataBank.UnionInfo.ExecuteAddition(currentMember, parseResult);
-
-                    //Возвращаемся в меню денег
-                    EmbedBuilder embedBuilder = new EmbedBuilder()
-                        .WithFooter(new EmbedFooterBuilder().WithText($"Информация на {DateTime.Now}"));
+                    EmbedBuilder embedBuilder = new EmbedBuilder();
                     ComponentBuilder buttonBuilder = new ComponentBuilder();
-                    embedBuilder.Title = "Информация о вкладе";
-                    embedBuilder.AddField("Баланс:", $"{DataBank.UnionInfo.Money} ₽", true);
-                    embedBuilder.AddField("Процент:", "10%", true);
-
-                    buttonBuilder.WithButton("Добавить", "AddMoneyMenu");
-                    buttonBuilder.WithButton("Потратить", "SpendMoneyMenu");
-                    buttonBuilder.WithButton("Изменить процент", "SetPercent");
-                    buttonBuilder.WithButton("Назад", "InfoMenu");
+                    EmbedButtonMenus.ApplyMoneyControl(embedBuilder, buttonBuilder);
                     await modal.RespondAsync("Успешно зачислено", new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
                 }
                 else
@@ -138,26 +138,10 @@ async Task SlashCommandHandler(SocketSlashCommand command)
     switch (command.Data.Name)
     {
         case "info":
-            //Создаю Embed
-            EmbedBuilder builder = new EmbedBuilder();
-            builder.Title = "Состояние казны";
-            EmbedFooterBuilder footerbuilder = new EmbedFooterBuilder();
-            footerbuilder.Text = $"Информация на {DateTime.Now}";
-            builder.Footer = footerbuilder;
-            builder.AddField("Баланс:", $"{DataBank.UnionInfo.Money} ₽", true);
-            builder.AddField("Процент:", "10%", true);
-            HolidayInfo? info = DataBank.UnionInfo.CheckIfDayIsHoliday(DateTime.Today);
-            if (info != null)
-            {
-                builder.AddField("Сегодня:", info.Name);
-            }
-            //Создаю кнопки
+            EmbedBuilder embedBuilder = new EmbedBuilder();
             ComponentBuilder buttonBuilder = new ComponentBuilder();
-            buttonBuilder.WithButton("Вклад", "MoneyControl");
-            buttonBuilder.WithButton("Кредиты", "CreditsControl");
-            buttonBuilder.WithButton("Праздники", "HolidayControl");
-            buttonBuilder.WithButton("Настройки", "Settings");
-            await command.RespondAsync(null, new Embed[1] { builder.Build() }, components: buttonBuilder.Build());
+            EmbedButtonMenus.ApplyInfoMenu(embedBuilder, buttonBuilder);
+            await command.RespondAsync(null, new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
             break;
     }
 }
