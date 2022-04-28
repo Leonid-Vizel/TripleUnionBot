@@ -139,7 +139,7 @@ async Task HandleButtonClick(SocketMessageComponent component)
         case "GeneralInvestment":
             ModalBuilder modalBuilder = new ModalBuilder()
                 .WithCustomId($"{component.Data.CustomId}Modal")
-                .WithTitle("Залупа")
+                .WithTitle("Добавление средств")
                 .AddTextInput(new TextInputBuilder()
                     .WithLabel("Сумма дополнительного перевода:")
                     .WithCustomId($"{component.Data.CustomId}Input")
@@ -164,7 +164,7 @@ async Task HandleModalSubmit(SocketModal modal)
         case "EmilMumdzhiInvestmentModal":
         case "NikitaInvestmentModal":
         case "GeneralInvestmentModal":
-            UnionMember currentMember;
+            UnionMember currentMember = 0;
             switch (modal.Data.CustomId)
             {
                 case "EmilMaksudovInvestment":
@@ -180,9 +180,37 @@ async Task HandleModalSubmit(SocketModal modal)
                     currentMember = UnionMember.General;
                     break;
             }
-            break;
             SocketMessageComponentData? componentData = modal.Data.Components.First();
-            componentData.Values
+            if (decimal.TryParse(componentData.Value.Replace(",", "."), out decimal parseResult))
+            {
+                if (parseResult > 0)
+                {
+                    DataBank.UnionInfo.ExecuteAddition(currentMember, parseResult);
+
+                    //Возвращаемся в меню денег
+                    EmbedBuilder embedBuilder = new EmbedBuilder()
+                        .WithFooter(new EmbedFooterBuilder().WithText($"Информация на {DateTime.Now}"));
+                    ComponentBuilder buttonBuilder = new ComponentBuilder();
+                    embedBuilder.Title = "Информация о вкладе";
+                    embedBuilder.AddField("Баланс:", $"{DataBank.UnionInfo.Money} ₽", true);
+                    embedBuilder.AddField("Процент:", "10%", true);
+
+                    buttonBuilder.WithButton("Добавить", "AddMoneyMenu");
+                    buttonBuilder.WithButton("Потратить", "SpendMoneyMenu");
+                    buttonBuilder.WithButton("Изменить процент", "SetPercent");
+                    buttonBuilder.WithButton("Назад", "InfoMenu");
+                    await modal.RespondAsync("Успешно зачислено", new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
+                }
+                else
+                {
+                    await modal.RespondAsync("Зачиление не может быть 0 или отрицательным числом. Для этого используйте списания");
+                }
+            }
+            else
+            {
+                await modal.RespondAsync("Не удалось преоразовать в число, извините.");
+            }
+            break;
     }
 }
 

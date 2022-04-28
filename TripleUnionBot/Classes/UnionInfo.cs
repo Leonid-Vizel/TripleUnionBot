@@ -10,7 +10,7 @@ namespace TripleUnionBot.Classes
     {
         public decimal Money { get; private set; }
         public List<HolidayInfo> Holidays { get; private set; }
-        public List<AdditionTransaction> Additionals { get; private set; }
+        public List<AdditionTransaction> Additions { get; private set; }
         public List<WasteTransaction> Wastes { get; private set; }
         public List<CreditInfo> Credits { get; private set; }
         public string MainChannelId { get; private set; }
@@ -19,7 +19,7 @@ namespace TripleUnionBot.Classes
         {
             Money = 0;
             Holidays = new List<HolidayInfo>();
-            Additionals = new List<AdditionTransaction>();
+            Additions = new List<AdditionTransaction>();
             Credits = new List<CreditInfo>();
         }
 
@@ -27,7 +27,7 @@ namespace TripleUnionBot.Classes
         {
             Money = money;
             Holidays = holidays.ToList();
-            Additionals = transactions.ToList();
+            Additions = transactions.ToList();
             Credits = credits.ToList();
         }
 
@@ -42,8 +42,9 @@ namespace TripleUnionBot.Classes
             return true;
         }
 
-        public bool ExecuteWaste(WasteTransaction transaction)
+        public bool ExecuteWaste(UnionMember member, decimal money)
         {
+            WasteTransaction transaction = new WasteTransaction(GetNextWasteId(), member, money);
             if (transaction.Money > Money)
             {
                 return false;
@@ -54,11 +55,36 @@ namespace TripleUnionBot.Classes
             return true;
         }
 
-        public void ExecuteAddition(AdditionTransaction transaction)
+        public void ExecuteAddition(UnionMember member, decimal money)
         {
+            AdditionTransaction transaction = new AdditionTransaction(GetNextAdditionId(), member, money);
             Money += transaction.Money;
-            Additionals.Add(transaction);
+            Additions.Add(transaction);
             //Db interation
+        }
+
+        private int GetNextAdditionId()
+        {
+            if (Additions.Count > 0)
+            {
+                return Additions.Max(x => x.Id) + 1;
+            }
+            else
+            {
+                return 0;
+            }
+        }
+
+        private int GetNextWasteId()
+        {
+            if (Additions.Count > 0)
+            {
+                return Additions.Max(x => x.Id) + 1;
+            }
+            else
+            {
+                return 0;
+            }
         }
 
         public HolidayInfo? CheckIfDayIsHoliday(DateTime dateCheck)
