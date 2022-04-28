@@ -20,6 +20,7 @@ namespace TripleUnionBot.Classes
             Money = 0;
             Holidays = new List<HolidayInfo>();
             Additions = new List<AdditionTransaction>();
+            Wastes = new List<WasteTransaction>();
             Credits = new List<CreditInfo>();
         }
 
@@ -28,6 +29,7 @@ namespace TripleUnionBot.Classes
             Money = money;
             Holidays = holidays.ToList();
             Additions = transactions.ToList();
+            Wastes = new List<WasteTransaction>();
             Credits = credits.ToList();
         }
 
@@ -42,9 +44,9 @@ namespace TripleUnionBot.Classes
             return true;
         }
 
-        public bool ExecuteWaste(UnionMember member, decimal money)
+        public bool ExecuteWaste(UnionMember member, decimal money, string? description = null)
         {
-            WasteTransaction transaction = new WasteTransaction(GetNextWasteId(), member, money);
+            WasteTransaction transaction = new WasteTransaction(GetNextWasteId(), member, money, description, DateTime.Now);
             if (transaction.Money > Money)
             {
                 return false;
@@ -55,9 +57,9 @@ namespace TripleUnionBot.Classes
             return true;
         }
 
-        public void ExecuteAddition(UnionMember member, decimal money)
+        public void ExecuteAddition(UnionMember member, decimal money, string? description = null)
         {
-            AdditionTransaction transaction = new AdditionTransaction(GetNextAdditionId(), member, money);
+            AdditionTransaction transaction = new AdditionTransaction(GetNextAdditionId(), member, money, description, DateTime.Now);
             Money += transaction.Money;
             Additions.Add(transaction);
             //Db interation

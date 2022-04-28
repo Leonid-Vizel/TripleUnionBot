@@ -39,6 +39,7 @@ namespace TripleUnionBot.Classes
             ApplyCurrentTimeFooter(embedBuilder);
             buttonBuilder.WithButton("Добавить", "AddMoneyMenu");
             buttonBuilder.WithButton("Потратить", "SpendMoneyMenu");
+            buttonBuilder.WithButton("История", "TransactionHistory");
             buttonBuilder.WithButton("Изменить процент", "SetPercent");
             buttonBuilder.WithButton("Назад", "InfoMenu");
         }
