@@ -39,116 +39,35 @@ async Task ConfigureCommands()
 
 async Task HandleButtonClick(SocketMessageComponent component)
 {
-    EmbedBuilder embedBuilder = new EmbedBuilder()
-            .WithFooter(new EmbedFooterBuilder().WithText($"Информация на {DateTime.Now}"));
+    EmbedBuilder embedBuilder = new EmbedBuilder();
     ComponentBuilder buttonBuilder = new ComponentBuilder();
     switch (component.Data.CustomId)
     {
         case "InfoMenu":
-            embedBuilder.Title = "Состояние казны";
-            embedBuilder.AddField("Баланс:", $"{DataBank.UnionInfo.Money} ₽", true);
-            embedBuilder.AddField("Процент:", "10%", true);
-            HolidayInfo? foundHoliday = DataBank.UnionInfo.CheckIfDayIsHoliday(DateTime.Today);
-            if (foundHoliday != null)
-            {
-                embedBuilder.AddField("Сегодня:", foundHoliday.Name);
-            }
-            buttonBuilder.WithButton("Вклад", "MoneyControl");
-            buttonBuilder.WithButton("Кредиты", "CreditsControl");
-            buttonBuilder.WithButton("Праздники", "HolidayControl");
-            buttonBuilder.WithButton("Настройки", "Settings");
+            EmbedButtonMenus.ApplyInfoMenu(embedBuilder,buttonBuilder);
             await component.RespondAsync(null, new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
             break;
         case "MoneyControl":
-            embedBuilder.Title = "Информация о вкладе";
-            embedBuilder.AddField("Баланс:", $"{DataBank.UnionInfo.Money} ₽", true);
-            embedBuilder.AddField("Процент:", "10%", true);
-
-            buttonBuilder.WithButton("Добавить", "AddMoneyMenu");
-            buttonBuilder.WithButton("Потратить", "SpendMoneyMenu");
-            buttonBuilder.WithButton("Изменить процент", "SetPercent");
-            buttonBuilder.WithButton("Назад", "InfoMenu");
+            EmbedButtonMenus.ApplyMoneyControl(embedBuilder, buttonBuilder);
             await component.RespondAsync(null, new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
             break;
         case "CreditsControl":
-            embedBuilder.Title = "Информация о кредитах";
-            embedBuilder.AddField("Всего кредитов:", DataBank.UnionInfo.Credits.Count, true);
-            embedBuilder.AddField("Процент:", "10%", true);
-
-            buttonBuilder.WithButton("Добавить кредит", "AddMoney");
-            buttonBuilder.WithButton("Закрыть кредит", "SpendMoney");
-            buttonBuilder.WithButton("Назад", "InfoMenu");
+            EmbedButtonMenus.ApplyCreditsControl(embedBuilder, buttonBuilder);
             await component.RespondAsync(null, new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
             break;
         case "HolidayControl":
-            embedBuilder.Title = "Информация о праздниках";
-            embedBuilder.AddField("Всего праздников:", DataBank.UnionInfo.Credits.Count, true);
-            HolidayInfo? foundInfo = DataBank.UnionInfo.CheckIfDayIsHoliday(DateTime.Today);
-            if (foundInfo != null)
-            {
-                embedBuilder.AddField("Сегодня:", foundInfo.Name, true);
-            }
-            if (DataBank.UnionInfo.Credits.Count > 0)
-            {
-                StringBuilder listBuilder = new StringBuilder();
-                int pageCount = 0;
-                foreach (HolidayInfo info in DataBank.UnionInfo.Holidays.OrderBy(x => x.Date))
-                {
-                    string line = $"[{info.Date.ToString("dd.MM.yyyy")}] {info.Name}";
-                    if (listBuilder.Length + line.Length > 1024)
-                    {
-                        embedBuilder.AddField($"Страница {++pageCount}", listBuilder.ToString());
-                        listBuilder.Clear();
-                    }
-                    else
-                    {
-                        listBuilder.AppendLine($"[{info.Date.ToString("dd.MM.yyyy")}] {info.Name}");
-                    }
-                }
-                if (pageCount == 0)
-                {
-                    embedBuilder.AddField($"Список", listBuilder.ToString());
-                }
-                else if (listBuilder.Length > 0)
-                {
-                    embedBuilder.AddField($"Страница {++pageCount}", listBuilder.ToString());
-                }
-            }
-            else
-            {
-                embedBuilder.AddField($"Список", "🕸Здесь пока пусто🕸");
-            }
-
-            buttonBuilder.WithButton("Добавить", "AddHoliday");
-            buttonBuilder.WithButton("Отменить праздник", "RemoveHoliday");
-            buttonBuilder.WithButton("Назад", "InfoMenu");
+            EmbedButtonMenus.ApplyHolidayControl(embedBuilder, buttonBuilder);
             await component.RespondAsync(null, new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
             break;
         case "AddMoneyMenu":
-            //Создаю кнопки
-            buttonBuilder.WithButton("Эмиль Максудов", "EmilMaksudovInvestment");
-            buttonBuilder.WithButton("Эмиль Мумджи", "EmilMumdzhiInvestment");
-            buttonBuilder.WithButton("Никита Гордеев", "NikitaInvestment");
-            buttonBuilder.WithButton("Общее вложение", "GeneralInvestment");
-            buttonBuilder.WithButton("Назад", "MoneyControl");
+            EmbedButtonMenus.ApplyAddMoneyMenu(buttonBuilder);
             await component.RespondAsync("Выберите от лица кого будет начисление:", components: buttonBuilder.Build());
             break;
         case "EmilMaksudovInvestment":
         case "EmilMumdzhiInvestment":
         case "NikitaInvestment":
         case "GeneralInvestment":
-            ModalBuilder modalBuilder = new ModalBuilder()
-                .WithCustomId($"{component.Data.CustomId}Modal")
-                .WithTitle("Добавление средств")
-                .AddTextInput(new TextInputBuilder()
-                    .WithLabel("Сумма дополнительного перевода:")
-                    .WithCustomId($"{component.Data.CustomId}Input")
-                    .WithStyle(TextInputStyle.Short)
-                    .WithMinLength(1)
-                    .WithMaxLength(10)
-                    .WithRequired(true)
-                    .WithPlaceholder("228"));
-            await component.RespondWithModalAsync(modalBuilder.Build());
+            await component.RespondWithModalAsync(EmbedButtonMenus.ApplyInestment(component.Data.CustomId).Build());
             break;
         default:
             return;
