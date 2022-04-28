@@ -58,46 +58,52 @@ namespace TripleUnionBot.Classes
         public static void ApplyHolidayControl(EmbedBuilder embedBuilder, ComponentBuilder buttonBuilder)
         {
             embedBuilder.Title = "Информация о праздниках";
-            embedBuilder.AddField("Всего праздников:", DataBank.UnionInfo.Credits.Count, true);
+            embedBuilder.AddField("Всего праздников:", DataBank.UnionInfo.Holidays.Count, true);
             HolidayInfo? foundInfo = DataBank.UnionInfo.CheckIfDayIsHoliday(DateTime.Today);
             if (foundInfo != null)
             {
                 embedBuilder.AddField("Сегодня:", foundInfo.Name, true);
             }
-            if (DataBank.UnionInfo.Credits.Count > 0)
+            ApplyCurrentTimeFooter(embedBuilder);
+            buttonBuilder.WithButton("Список", "ListHoliday:0");
+            buttonBuilder.WithButton("Добавить", "AddHoliday");
+            buttonBuilder.WithButton("Убрать", "RemoveHoliday");
+            buttonBuilder.WithButton("Назад", "InfoMenu");
+        }
+
+        public static void ApplyHolidayList(int page, EmbedBuilder embedBuilder, ComponentBuilder buttonBuilder)
+        {
+            embedBuilder.Title = "Спиок праздников";
+            int counter = page * 30;
+            if (counter >= DataBank.UnionInfo.Holidays.Count)
             {
-                StringBuilder listBuilder = new StringBuilder();
-                int pageCount = 0;
-                foreach (HolidayInfo info in DataBank.UnionInfo.Holidays.OrderBy(x => x.Date))
-                {
-                    string line = $"[{info.Date.ToString("dd.MM.yyyy")}] {info.Name}";
-                    if (listBuilder.Length + line.Length > 1024)
-                    {
-                        embedBuilder.AddField($"Страница {++pageCount}", listBuilder.ToString());
-                        listBuilder.Clear();
-                    }
-                    else
-                    {
-                        listBuilder.AppendLine($"[{info.Date.ToString("dd.MM.yyyy")}] {info.Name}");
-                    }
-                }
-                if (pageCount == 0)
-                {
-                    embedBuilder.AddField($"Список", listBuilder.ToString());
-                }
-                else if (listBuilder.Length > 0)
-                {
-                    embedBuilder.AddField($"Страница {++pageCount}", listBuilder.ToString());
-                }
+                counter = 0;
+            }
+            int endCount = counter + 30;
+            StringBuilder builder = new StringBuilder();
+            for (; counter < endCount; counter++)
+            {
+                builder.AppendLine($"[{DataBank.UnionInfo.Holidays[counter].Date.ToString("dd.MM.yyyy")}] {DataBank.UnionInfo.Holidays[counter].Name}");
+            }
+            embedBuilder.AddField($"Страница {page + 1}", builder.ToString());
+            ApplyCurrentTimeFooter(embedBuilder);
+            int totalPageCount;
+            if ((double)DataBank.UnionInfo.Holidays.Count / 30 % 1 != 0)
+            {
+                totalPageCount = DataBank.UnionInfo.Holidays.Count / 30 + 1;
             }
             else
             {
-                embedBuilder.AddField($"Список", "🕸Здесь пока пусто🕸");
+                totalPageCount = DataBank.UnionInfo.Holidays.Count / 30;
             }
-            ApplyCurrentTimeFooter(embedBuilder);
-            buttonBuilder.WithButton("Добавить", "AddHoliday");
-            buttonBuilder.WithButton("Отменить праздник", "RemoveHoliday");
-            buttonBuilder.WithButton("Назад", "InfoMenu");
+            for (int i = 0; i < totalPageCount; i++)
+            {
+                if (i != page)
+                {
+                    buttonBuilder.WithButton(i.ToString(), $"ListHoliday:{i}");
+                }
+            }
+            buttonBuilder.WithButton("Назад", "HolidayControl");
         }
 
         public static void ApplyAddMoneyMenu(ComponentBuilder buttonBuilder)
@@ -114,7 +120,7 @@ namespace TripleUnionBot.Classes
             buttonBuilder.WithButton("Эмиль Максудов", "EmilMaksudovSpend");
             buttonBuilder.WithButton("Эмиль Мумджи", "EmilMumdzhiSpend");
             buttonBuilder.WithButton("Никита Гордеев", "NikitaSpend");
-            buttonBuilder.WithButton("Общее вложение", "GeneralSpend");
+            buttonBuilder.WithButton("Общая трата", "GeneralSpend");
             buttonBuilder.WithButton("Назад", "MoneyControl");
         }
 
