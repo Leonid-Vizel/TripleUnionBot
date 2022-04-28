@@ -8,8 +8,6 @@ using TripleUnionBot.Classes;
 #region Main Block
 DataBank.UnionInfo = new UnionInfo();
 DiscordSocketClient _client = new DiscordSocketClient(); //<-- Создание объекта клиента
-CommandHandler handler = new CommandHandler(_client, new CommandService(new CommandServiceConfig())); //<-- Настройка обработчика текстовых команд
-await handler.InstallCommandsAsync(); //<- Настройка комманд бота
 _client.Ready += ConfigureCommands; //<- Настройка слэш-комманд бота
 _client.SlashCommandExecuted += SlashCommandHandler;//<- Настройка обработки слэш-комманд бота
 _client.ModalSubmitted += HandleModalSubmit;
@@ -67,6 +65,9 @@ async Task HandleButtonClick(SocketMessageComponent component)
             EmbedButtonMenus.ApplyRemoveMoneyMenu(buttonBuilder);
             await component.RespondAsync("Выберите от лица кого будет начисление:", components: buttonBuilder.Build());
             break;
+        case "SetPercent":
+            await component.RespondWithModalAsync(EmbedButtonMenus.ApplySetPercent().Build());
+            break;
         case "EmilMaksudovInvestment":
         case "EmilMumdzhiInvestment":
         case "NikitaInvestment":
@@ -90,9 +91,29 @@ async Task HandleModalSubmit(SocketModal modal)
     UnionMember currentMember = 0;
     EmbedBuilder embedBuilder = new EmbedBuilder();
     ComponentBuilder buttonBuilder = new ComponentBuilder();
-    SocketMessageComponentData? componentData = null;
+    SocketMessageComponentData? componentData = modal.Data.Components.First();
     switch (modal.Data.CustomId)
     {
+        case "PercentModal":
+            if (decimal.TryParse(componentData.Value.Replace(",", "."), out decimal parsePercentResult))
+            {
+                if (DataBank.UnionInfo.SetPercent(parsePercentResult))
+                {
+                    EmbedButtonMenus.ApplyMoneyControl(embedBuilder, buttonBuilder);
+                    await modal.RespondAsync("Процент успешно изменён", new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
+                }
+                else
+                {
+                    EmbedButtonMenus.ApplyMoneyControl(embedBuilder, buttonBuilder);
+                    await modal.RespondAsync("Значение процента не может быть ниже нуля!", new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
+                }
+            }
+            else
+            {
+                EmbedButtonMenus.ApplyMoneyControl(embedBuilder, buttonBuilder);
+                await modal.RespondAsync("Не удалось преоразовать в число, извините.", new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
+            }
+            break;
         case "EmilMaksudovInvestmentModal":
         case "EmilMumdzhiInvestmentModal":
         case "NikitaInvestmentModal":
@@ -112,7 +133,6 @@ async Task HandleModalSubmit(SocketModal modal)
                     currentMember = UnionMember.General;
                     break;
             }
-            componentData = modal.Data.Components.First();
             if (decimal.TryParse(componentData.Value.Replace(",", "."), out decimal parseAddResult))
             {
                 if (parseAddResult > 0)
@@ -133,7 +153,6 @@ async Task HandleModalSubmit(SocketModal modal)
                 await modal.RespondAsync("Не удалось преоразовать в число, извините.", new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
             }
             break;
-
         case "EmilMaksudovSpendModal":
         case "EmilMumdzhiSpendModal":
         case "NikitaSpendModal":
@@ -153,7 +172,6 @@ async Task HandleModalSubmit(SocketModal modal)
                     currentMember = UnionMember.General;
                     break;
             }
-            componentData = modal.Data.Components.First();
             if (decimal.TryParse(componentData.Value.Replace(",", "."), out decimal parseSpendResult))
             {
                 if (parseSpendResult > 0)

@@ -18,7 +18,7 @@ namespace TripleUnionBot.Classes
         {
             embedBuilder.Title = "Состояние казны";
             embedBuilder.AddField("Баланс:", $"{DataBank.UnionInfo.Money} ₽", true);
-            embedBuilder.AddField("Процент:", "10%", true);
+            embedBuilder.AddField("Процент:", $"{DataBank.UnionInfo.Percent}%", true);
             HolidayInfo? foundHoliday = DataBank.UnionInfo.CheckIfDayIsHoliday(DateTime.Today);
             if (foundHoliday != null)
             {
@@ -35,7 +35,7 @@ namespace TripleUnionBot.Classes
         {
             embedBuilder.Title = "Информация о вкладе";
             embedBuilder.AddField("Баланс:", $"{DataBank.UnionInfo.Money} ₽", true);
-            embedBuilder.AddField("Процент:", "10%", true);
+            embedBuilder.AddField("Процент:", $"{DataBank.UnionInfo.Percent}%", true);
             ApplyCurrentTimeFooter(embedBuilder);
             buttonBuilder.WithButton("Добавить", "AddMoneyMenu");
             buttonBuilder.WithButton("Потратить", "SpendMoneyMenu");
@@ -146,6 +146,21 @@ namespace TripleUnionBot.Classes
                     .WithMaxLength(10)
                     .WithRequired(true)
                     .WithPlaceholder("228"));
+        }
+
+        public static ModalBuilder ApplySetPercent()
+        {
+            return new ModalBuilder()
+                .WithCustomId("PercentModal")
+                .WithTitle("Изменение процента вклада")
+                .AddTextInput(new TextInputBuilder()
+                    .WithLabel("Новый процент:")
+                    .WithCustomId("PercentInput")
+                    .WithStyle(TextInputStyle.Short)
+                    .WithMinLength(1)
+                    .WithMaxLength(10)
+                    .WithRequired(true)
+                    .WithPlaceholder(DataBank.UnionInfo.Percent.ToString()));
         }
     }
 }

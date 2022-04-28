@@ -9,9 +9,9 @@ namespace TripleUnionBot.Classes
     internal class UnionInfo
     {
         public decimal Money { get; private set; }
+        public decimal Percent { get; private set; }
         public List<HolidayInfo> Holidays { get; private set; }
-        public List<AdditionTransaction> Additions { get; private set; }
-        public List<WasteTransaction> Wastes { get; private set; }
+        public List<Transaction> Transactions { get; private set; }
         public List<CreditInfo> Credits { get; private set; }
         public string MainChannelId { get; private set; }
 
@@ -19,17 +19,15 @@ namespace TripleUnionBot.Classes
         {
             Money = 0;
             Holidays = new List<HolidayInfo>();
-            Additions = new List<AdditionTransaction>();
-            Wastes = new List<WasteTransaction>();
+            Transactions = new List<Transaction>();
             Credits = new List<CreditInfo>();
         }
 
-        public UnionInfo(decimal money, IEnumerable<HolidayInfo> holidays, IEnumerable<AdditionTransaction> transactions, IEnumerable<CreditInfo> credits)
+        public UnionInfo(decimal money, IEnumerable<HolidayInfo> holidays, IEnumerable<Transaction> transactions, IEnumerable<CreditInfo> credits)
         {
             Money = money;
             Holidays = holidays.ToList();
-            Additions = transactions.ToList();
-            Wastes = new List<WasteTransaction>();
+            Transactions = transactions.ToList();
             Credits = credits.ToList();
         }
 
@@ -44,44 +42,44 @@ namespace TripleUnionBot.Classes
             return true;
         }
 
+
+        public bool SetPercent(decimal updateValue)
+        {
+            if (updateValue < 0)
+            {
+                return false;
+            }
+            Percent = updateValue;
+            //DbInteraction
+            return true;
+        }
+
         public bool ExecuteWaste(UnionMember member, decimal money, string? description = null)
         {
-            WasteTransaction transaction = new WasteTransaction(GetNextWasteId(), member, money, description, DateTime.Now);
+            Transaction transaction = new Transaction(GetNextTransactionId(), member, -money, description, DateTime.Now);
             if (transaction.Money > Money)
             {
                 return false;
             }
             Money -= transaction.Money;
-            Wastes.Add(transaction);
+            Transactions.Add(transaction);
             //Db interation
             return true;
         }
 
         public void ExecuteAddition(UnionMember member, decimal money, string? description = null)
         {
-            AdditionTransaction transaction = new AdditionTransaction(GetNextAdditionId(), member, money, description, DateTime.Now);
+            Transaction transaction = new Transaction(GetNextTransactionId(), member, money, description, DateTime.Now);
             Money += transaction.Money;
-            Additions.Add(transaction);
+            Transactions.Add(transaction);
             //Db interation
         }
 
-        private int GetNextAdditionId()
+        private int GetNextTransactionId()
         {
-            if (Additions.Count > 0)
+            if (Transactions.Count > 0)
             {
-                return Additions.Max(x => x.Id) + 1;
-            }
-            else
-            {
-                return 0;
-            }
-        }
-
-        private int GetNextWasteId()
-        {
-            if (Additions.Count > 0)
-            {
-                return Additions.Max(x => x.Id) + 1;
+                return Transactions.Max(x => x.Id) + 1;
             }
             else
             {
