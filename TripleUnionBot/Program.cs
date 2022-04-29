@@ -209,25 +209,36 @@ async Task HandleModalSubmit(SocketModal modal)
                     currentMember = UnionMember.General;
                     break;
             }
-            if (decimal.TryParse(componentData.Value.Replace(",", "."), out decimal parseAddResult))
+            decimal inputAddMoney = 0;
+            string? descriptionAdd = null;
+            foreach(SocketMessageComponentData data in modal.Data.Components)
             {
-                if (parseAddResult > 0)
+                if (data.CustomId.EndsWith("Input"))
                 {
-                    DataBank.UnionInfo.ExecuteAddition(currentMember, parseAddResult);
-                    EmbedButtonMenus.ApplyMoneyControl(embedBuilder, buttonBuilder);
-                    await modal.RespondAsync("Успешно зачислено", new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
+                    if (decimal.TryParse(componentData.Value.Replace(",", "."), out inputAddMoney))
+                    {
+                        if (inputAddMoney <= 0)
+                        {
+                            EmbedButtonMenus.ApplyMoneyControl(embedBuilder, buttonBuilder);
+                            await modal.RespondAsync("Зачиление не может быть 0 или отрицательным числом. Для этого используйте списания", new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        EmbedButtonMenus.ApplyMoneyControl(embedBuilder, buttonBuilder);
+                        await modal.RespondAsync("Не удалось преоразовать в число, извините.", new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
+                        return;
+                    }
                 }
                 else
                 {
-                    EmbedButtonMenus.ApplyMoneyControl(embedBuilder, buttonBuilder);
-                    await modal.RespondAsync("Зачиление не может быть 0 или отрицательным числом. Для этого используйте списания", new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
+                    descriptionAdd = data.Value;
                 }
             }
-            else
-            {
-                EmbedButtonMenus.ApplyMoneyControl(embedBuilder, buttonBuilder);
-                await modal.RespondAsync("Не удалось преоразовать в число, извините.", new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
-            }
+            DataBank.UnionInfo.ExecuteAddition(currentMember, inputAddMoney, descriptionAdd);
+            EmbedButtonMenus.ApplyMoneyControl(embedBuilder, buttonBuilder);
+            await modal.RespondAsync("Успешно зачислено", new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
             break;
         case "EmilMaksudovSpendModal":
         case "EmilMumdzhiSpendModal":
@@ -248,31 +259,51 @@ async Task HandleModalSubmit(SocketModal modal)
                     currentMember = UnionMember.General;
                     break;
             }
-            if (decimal.TryParse(componentData.Value.Replace(",", "."), out decimal parseSpendResult))
+            decimal inputSpendMoney = 0;
+            string? descriptionSpend = null;
+            foreach (SocketMessageComponentData data in modal.Data.Components)
             {
-                if (parseSpendResult > 0)
+                if (data.CustomId.EndsWith("Input"))
                 {
-                    if (DataBank.UnionInfo.ExecuteWaste(currentMember, parseSpendResult))
+                    if (decimal.TryParse(componentData.Value.Replace(",", "."), out inputSpendMoney))
                     {
-                        EmbedButtonMenus.ApplyMoneyControl(embedBuilder, buttonBuilder);
-                        await modal.RespondAsync("Успешно снято", new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
+                        if (inputSpendMoney > 0)
+                        {
+                            if (DataBank.UnionInfo.Money < inputSpendMoney)
+                            {
+                                EmbedButtonMenus.ApplyMoneyControl(embedBuilder, buttonBuilder);
+                                await modal.RespondAsync("На счету недостаточно средств.", new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
+                                return;
+                            }
+                        }
+                        else
+                        {
+                            EmbedButtonMenus.ApplyMoneyControl(embedBuilder, buttonBuilder);
+                            await modal.RespondAsync("Зачиление не может быть 0 или отрицательным числом. Для этого используйте списания", new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
+                            return;
+                        }
                     }
                     else
                     {
                         EmbedButtonMenus.ApplyMoneyControl(embedBuilder, buttonBuilder);
-                        await modal.RespondAsync("На счету недостаточно средств.", new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
+                        await modal.RespondAsync("Не удалось преоразовать в число, извините.", new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
+                        return;
                     }
                 }
                 else
                 {
-                    EmbedButtonMenus.ApplyMoneyControl(embedBuilder, buttonBuilder);
-                    await modal.RespondAsync("Зачиление не может быть 0 или отрицательным числом. Для этого используйте списания", new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
+                    descriptionSpend = data.Value;
                 }
+            }
+            if (DataBank.UnionInfo.ExecuteWaste(currentMember, inputSpendMoney, descriptionSpend))
+            {
+                EmbedButtonMenus.ApplyMoneyControl(embedBuilder, buttonBuilder);
+                await modal.RespondAsync("Успешно снято", new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
             }
             else
             {
                 EmbedButtonMenus.ApplyMoneyControl(embedBuilder, buttonBuilder);
-                await modal.RespondAsync("Не удалось преоразовать в число, извините.", new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
+                await modal.RespondAsync("Ошибка снятия", new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
             }
             break;
     }

@@ -48,7 +48,6 @@ namespace TripleUnionBot.Classes
         {
             embedBuilder.Title = "Информация о кредитах";
             embedBuilder.AddField("Всего кредитов:", DataBank.UnionInfo.Credits.Count, true);
-            embedBuilder.AddField("Процент:", "10%", true);
             ApplyCurrentTimeFooter(embedBuilder);
             buttonBuilder.WithButton("Добавить кредит", "AddMoney");
             buttonBuilder.WithButton("Закрыть кредит", "SpendMoney");
@@ -136,7 +135,15 @@ namespace TripleUnionBot.Classes
                     .WithMinLength(1)
                     .WithMaxLength(10)
                     .WithRequired(true)
-                    .WithPlaceholder("228"));
+                    .WithPlaceholder("228"))
+                .AddTextInput(new TextInputBuilder()
+                    .WithLabel("Описание (не обязательно)")
+                    .WithCustomId($"{customId}Desc")
+                    .WithStyle(TextInputStyle.Paragraph)
+                    .WithMinLength(1)
+                    .WithMaxLength(80)
+                    .WithRequired(false)
+                    .WithPlaceholder("Говно, залупа, пенис, хер..."));
         }
 
         public static ModalBuilder ApplySpend(string customId)
@@ -151,7 +158,38 @@ namespace TripleUnionBot.Classes
                     .WithMinLength(1)
                     .WithMaxLength(10)
                     .WithRequired(true)
-                    .WithPlaceholder("228"));
+                    .WithPlaceholder("228"))
+                .AddTextInput(new TextInputBuilder()
+                    .WithLabel("Описание (не обязательно)")
+                    .WithCustomId($"{customId}Desc")
+                    .WithStyle(TextInputStyle.Paragraph)
+                    .WithMinLength(1)
+                    .WithMaxLength(80)
+                    .WithRequired(false)
+                    .WithPlaceholder("Говно, залупа, пенис, хер..."));
+        }
+
+        public static ModalBuilder ApplyAddHoliday()
+        {
+            return new ModalBuilder()
+                .WithCustomId($"HolidayAddModal")
+                .WithTitle("Добавление праздника")
+                .AddTextInput(new TextInputBuilder()
+                    .WithLabel("Название праздника:")
+                    .WithCustomId($"HolidayInput")
+                    .WithStyle(TextInputStyle.Short)
+                    .WithMinLength(1)
+                    .WithMaxLength(10)
+                    .WithRequired(true)
+                    .WithPlaceholder("228"))
+                .AddTextInput(new TextInputBuilder()
+                    .WithLabel("Дата:")
+                    .WithCustomId($"HolidayDate")
+                    .WithStyle(TextInputStyle.Paragraph)
+                    .WithMinLength(1)
+                    .WithMaxLength(10)
+                    .WithRequired(true)
+                    .WithPlaceholder("10.10.2020"));
         }
 
         public static ModalBuilder ApplySetPercent()
