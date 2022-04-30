@@ -18,25 +18,23 @@ await Task.Delay(-1); //<-- Чтобы прога не закрывалась р
 
 async Task ConfigureCommands()
 {
-    var commandBuilder1 = new SlashCommandBuilder();
-    // regex: ^[\w-]{3,32}$
-    commandBuilder1.WithName("info");
-    commandBuilder1.WithDescription("Показывает информацию о состоянии союза!");
-
-    var commandBuilder2 = new SlashCommandBuilder();
-    commandBuilder2.WithName("ебани");
-    commandBuilder2.AddOption("начало",ApplicationCommandOptionType.Integer, "Начало отрезка", true, minValue: int.MinValue, maxValue: int.MaxValue);
-    commandBuilder2.AddOption("конец", ApplicationCommandOptionType.Integer, "Конец отрезка", true, minValue: int.MinValue, maxValue: int.MaxValue);
-    commandBuilder2.WithDescription("Ебанёт число в указанном Вами отрезке");
+    SlashCommandBuilder[] commandBuilders = new SlashCommandBuilder[2]
+    {
+        new SlashCommandBuilder().WithName("info").WithDescription("Показывает информацию о состоянии союза"),
+        new SlashCommandBuilder().WithName("ебани").WithDescription("Ебанёт число в указанном Вами отрезке")
+            .AddOption("начало",ApplicationCommandOptionType.Integer, "Начало отрезка", true, minValue: int.MinValue, maxValue: int.MaxValue)
+            .AddOption("конец", ApplicationCommandOptionType.Integer, "Конец отрезка", true, minValue: int.MinValue, maxValue: int.MaxValue)
+    };
     try
     {
         SocketGuild? guild = _client.GetGuild(886180298239402034);
         if (guild != null)
         {
-            await guild.CreateApplicationCommandAsync(commandBuilder1.Build());
-            Console.WriteLine($"{commandBuilder1.Name} is registered");
-            await guild.CreateApplicationCommandAsync(commandBuilder2.Build());
-            Console.WriteLine($"{commandBuilder2.Name} is registered");
+            foreach (SlashCommandBuilder commandBuilder in commandBuilders)
+            {
+                await guild.CreateApplicationCommandAsync(commandBuilder.Build());
+                Console.WriteLine($"{commandBuilder.Name} is registered");
+            }
         }
         else
         {
