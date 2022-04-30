@@ -207,9 +207,23 @@ namespace TripleUnionBot.Classes
                     .WithCustomId("PercentInput")
                     .WithStyle(TextInputStyle.Short)
                     .WithMinLength(1)
-                    .WithMaxLength(10)
+                    .WithMaxLength(5)
                     .WithRequired(true)
                     .WithValue(DataBank.UnionInfo.Percent.ToString()));
+        }
+
+        public static ModalBuilder ApplyRemoveHoliday()
+        {
+            return new ModalBuilder()
+                .WithCustomId("HolidayRemoveModal")
+                .WithTitle("Удаление праздника")
+                .AddTextInput(new TextInputBuilder()
+                    .WithLabel("Введите дату праздника:")
+                    .WithCustomId("HolidayRemoveInput")
+                    .WithStyle(TextInputStyle.Short)
+                    .WithMinLength(1)
+                    .WithMaxLength(10)
+                    .WithRequired(true));
         }
     }
 }

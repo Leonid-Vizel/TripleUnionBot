@@ -7,10 +7,6 @@ using TripleUnionBot.Classes;
 
 #region Main Block
 DataBank.UnionInfo = new UnionInfo();
-for (int i = 0; i < 90; i++)
-{
-    DataBank.UnionInfo.Holidays.Add(new HolidayInfo(i, $"{i}День залупы", DateTime.Now));
-}
 DiscordSocketClient _client = new DiscordSocketClient(); //<-- Создание объекта клиента
 _client.Ready += ConfigureCommands; //<- Настройка слэш-комманд бота
 _client.SlashCommandExecuted += SlashCommandHandler;//<- Настройка обработки слэш-комманд бота
@@ -96,6 +92,10 @@ async Task HandleButtonClick(SocketMessageComponent component)
         case "AddHoliday":
             await component.Message.DeleteAsync();
             await component.RespondWithModalAsync(EmbedButtonMenus.ApplyAddHoliday().Build());
+            break;
+        case "RemoveHoliday":
+            await component.Message.DeleteAsync();
+            await component.RespondWithModalAsync(EmbedButtonMenus.ApplyRemoveHoliday().Build());
             break;
         case "AddMoneyMenu":
             EmbedButtonMenus.ApplyAddMoneyMenu(buttonBuilder);
@@ -194,6 +194,28 @@ async Task HandleModalSubmit(SocketModal modal)
                 await modal.RespondAsync("Не удалось преоразовать в число, извините.", new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
             }
             break;
+        case "HolidayRemoveModal":
+            if (DateTime.TryParse(componentData.Value, out DateTime dateTimeParse))
+            {
+                HolidayInfo? foundInfo = DataBank.UnionInfo.CheckIfDayIsHoliday(dateTimeParse);
+                if (foundInfo != null)
+                {
+                    DataBank.UnionInfo.Holidays.Remove(foundInfo);
+                    EmbedButtonMenus.ApplyHolidayControl(embedBuilder, buttonBuilder);
+                    await modal.RespondAsync($"Праздник '{foundInfo.Name}' был успешно удалён!", new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
+                }
+                else
+                {
+                    EmbedButtonMenus.ApplyHolidayControl(embedBuilder, buttonBuilder);
+                    await modal.RespondAsync("Не найдено праздников на эту дату", new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
+                }
+            }
+            else
+            {
+                EmbedButtonMenus.ApplyHolidayControl(embedBuilder, buttonBuilder);
+                await modal.RespondAsync("Неверынй формат даты", new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
+            }
+            break;
         case "HolidayAddModal":
             string nameParse = string.Empty;
             DateTime dateParse = DateTime.Now;
@@ -209,7 +231,15 @@ async Task HandleModalSubmit(SocketModal modal)
                     {
                         EmbedButtonMenus.ApplyHolidayControl(embedBuilder, buttonBuilder);
                         await modal.RespondAsync("Неверынй формат даты", new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
-                        return;
+                    }
+                    else
+                    {
+                        HolidayInfo? foundInfo = DataBank.UnionInfo.CheckIfDayIsHoliday(dateParse);
+                        if (foundInfo != null)
+                        {
+                            EmbedButtonMenus.ApplyHolidayControl(embedBuilder, buttonBuilder);
+                            await modal.RespondAsync($"На дату {dateParse.ToString("dd.MM.yyyy")} уже назначен праздник {foundInfo.Name}!", new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
+                        }
                     }
                 }
             }
@@ -220,9 +250,17 @@ async Task HandleModalSubmit(SocketModal modal)
             }
             else
             {
-                DataBank.UnionInfo.AddHoliday(nameParse,dateParse);
-                EmbedButtonMenus.ApplyHolidayControl(embedBuilder, buttonBuilder);
-                await modal.RespondAsync($"Праздник '{nameParse}' назначен на {dateParse.ToString("dd.MM.yyyy")}!", new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
+                if (DataBank.UnionInfo.Holidays.Any(x=>x.Name.ToLower().Equals(nameParse)))
+                {
+                    EmbedButtonMenus.ApplyHolidayControl(embedBuilder, buttonBuilder);
+                    await modal.RespondAsync("Праздник с похожим названием уже сущетсвует", new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
+                }
+                else
+                {
+                    DataBank.UnionInfo.AddHoliday(nameParse, dateParse);
+                    EmbedButtonMenus.ApplyHolidayControl(embedBuilder, buttonBuilder);
+                    await modal.RespondAsync($"Праздник '{nameParse}' назначен на {dateParse.ToString("dd.MM.yyyy")}!", new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
+                }
             }
             break;
         case "EmilMaksudovInvestmentModal":
