@@ -18,14 +18,30 @@ await Task.Delay(-1); //<-- Чтобы прога не закрывалась р
 
 async Task ConfigureCommands()
 {
-    var commandBuilder = new SlashCommandBuilder();
+    var commandBuilder1 = new SlashCommandBuilder();
     // regex: ^[\w-]{3,32}$
-    commandBuilder.WithName("info");
-    commandBuilder.WithDescription("Показывает информацию о состоянии союза!");
+    commandBuilder1.WithName("info");
+    commandBuilder1.WithDescription("Показывает информацию о состоянии союза!");
+
+    var commandBuilder2 = new SlashCommandBuilder();
+    commandBuilder2.WithName("ебани");
+    commandBuilder2.AddOption("начало",ApplicationCommandOptionType.Integer, "Начало отрезка", true, minValue: int.MinValue, maxValue: int.MaxValue);
+    commandBuilder2.AddOption("конец", ApplicationCommandOptionType.Integer, "Конец отрезка", true, minValue: int.MinValue, maxValue: int.MaxValue);
+    commandBuilder2.WithDescription("Ебанёт число в указанном Вами отрезке");
     try
     {
-        await _client.GetGuild(886180298239402034).CreateApplicationCommandAsync(commandBuilder.Build());
-        Console.WriteLine($"{commandBuilder.Name} is registered");
+        SocketGuild? guild = _client.GetGuild(886180298239402034);
+        if (guild != null)
+        {
+            await guild.CreateApplicationCommandAsync(commandBuilder1.Build());
+            Console.WriteLine($"{commandBuilder1.Name} is registered");
+            await guild.CreateApplicationCommandAsync(commandBuilder2.Build());
+            Console.WriteLine($"{commandBuilder2.Name} is registered");
+        }
+        else
+        {
+            Console.WriteLine($"Shit, fuck: guild is null!");
+        }
     }
     catch (Exception ex)
     {
@@ -389,6 +405,51 @@ async Task SlashCommandHandler(SocketSlashCommand command)
             ComponentBuilder buttonBuilder = new ComponentBuilder();
             EmbedButtonMenus.ApplyInfoMenu(embedBuilder, buttonBuilder);
             await command.RespondAsync(null, new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
+            break;
+        case "ебани":
+            try
+            {
+                int begin = 0;
+                int end = 0;
+                foreach (SocketSlashCommandDataOption option in command.Data.Options)
+                {
+                    if (option.Name.Equals("начало"))
+                    {
+                        if (option.Value is long)
+                        {
+                            begin = Convert.ToInt32(option.Value);
+                        }
+                        else
+                        {
+                            await command.RespondAsync("Кажется ебануть не получится, произошла ошибка!");
+                        }
+                    }
+                    else if (option.Name.Equals("конец"))
+                    {
+                        if (option.Value is long)
+                        {
+                            end = Convert.ToInt32(option.Value);
+                        }
+                        else
+                        {
+                            await command.RespondAsync("Кажется ебануть не получится, произошла ошибка!");
+                        }
+                    }
+                }
+                if (begin > end)
+                {
+                    await command.RespondAsync("Кажется ебануть не получится, произошла ошибка!");
+                }
+                else
+                {
+                    Random random = new Random(Guid.NewGuid().GetHashCode());
+                    await command.RespondAsync($"Хоба: {random.Next(begin, end + 1)}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
             break;
     }
 }
