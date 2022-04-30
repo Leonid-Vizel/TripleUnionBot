@@ -75,11 +75,30 @@ namespace TripleUnionBot.Classes
             //Db interation
         }
 
+        public void AddHoliday(string name, DateTime date)
+        {
+            HolidayInfo holidayInfo = new HolidayInfo(GetNextHolidayId(),name,date);
+            Holidays.Add(holidayInfo);
+            //Db interaction
+        }
+
         private int GetNextTransactionId()
         {
             if (Transactions.Count > 0)
             {
                 return Transactions.Max(x => x.Id) + 1;
+            }
+            else
+            {
+                return 0;
+            }
+        }
+
+        private int GetNextHolidayId()
+        {
+            if (Holidays.Count > 0)
+            {
+                return Holidays.Max(x => x.Id) + 1;
             }
             else
             {

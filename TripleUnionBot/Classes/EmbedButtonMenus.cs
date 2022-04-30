@@ -77,11 +77,16 @@ namespace TripleUnionBot.Classes
             if (counter >= DataBank.UnionInfo.Holidays.Count)
             {
                 counter = 0;
+                page = 0;
             }
             int endCount = counter + 30;
             StringBuilder builder = new StringBuilder();
             for (; counter < endCount; counter++)
             {
+                if (counter >= DataBank.UnionInfo.Holidays.Count)
+                {
+                    break;
+                }
                 builder.AppendLine($"[{DataBank.UnionInfo.Holidays[counter].Date.ToString("dd.MM.yyyy")}] {DataBank.UnionInfo.Holidays[counter].Name}");
             }
             embedBuilder.AddField($"Страница {page + 1}", builder.ToString());
@@ -99,7 +104,7 @@ namespace TripleUnionBot.Classes
             {
                 if (i != page)
                 {
-                    buttonBuilder.WithButton(i.ToString(), $"ListHoliday:{i}");
+                    buttonBuilder.WithButton((i+1).ToString(), $"ListHoliday:{i}");
                 }
             }
             buttonBuilder.WithButton("Назад", "HolidayControl");
@@ -185,11 +190,11 @@ namespace TripleUnionBot.Classes
                 .AddTextInput(new TextInputBuilder()
                     .WithLabel("Дата:")
                     .WithCustomId($"HolidayDate")
-                    .WithStyle(TextInputStyle.Paragraph)
+                    .WithStyle(TextInputStyle.Short)
                     .WithMinLength(1)
                     .WithMaxLength(10)
                     .WithRequired(true)
-                    .WithPlaceholder("10.10.2020"));
+                    .WithPlaceholder(DateTime.Today.ToString("dd.MM.yyyy")));
         }
 
         public static ModalBuilder ApplySetPercent()
@@ -204,7 +209,7 @@ namespace TripleUnionBot.Classes
                     .WithMinLength(1)
                     .WithMaxLength(10)
                     .WithRequired(true)
-                    .WithPlaceholder(DataBank.UnionInfo.Percent.ToString()));
+                    .WithValue(DataBank.UnionInfo.Percent.ToString()));
         }
     }
 }
