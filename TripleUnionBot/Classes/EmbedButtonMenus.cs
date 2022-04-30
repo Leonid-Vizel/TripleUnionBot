@@ -9,9 +9,17 @@ namespace TripleUnionBot.Classes
 {
     internal static class EmbedButtonMenus
     {
-        public static void ApplyCurrentTimeFooter(EmbedBuilder embedBuilder)
+        private static readonly Color leftColor;
+
+        static EmbedButtonMenus()
+        {
+            leftColor = new Color(0x9e0606);
+        }
+
+        public static void ApplyCurrentTimeFooterAndColor(EmbedBuilder embedBuilder)
         {
             embedBuilder.WithFooter(new EmbedFooterBuilder().WithText($"Информация на {DateTime.Now}"));
+            embedBuilder.WithColor(leftColor);
         }
 
         public static void ApplyInfoMenu(EmbedBuilder embedBuilder, ComponentBuilder buttonBuilder)
@@ -24,7 +32,7 @@ namespace TripleUnionBot.Classes
             {
                 embedBuilder.AddField("Сегодня:", foundHoliday.Name);
             }
-            ApplyCurrentTimeFooter(embedBuilder);
+            ApplyCurrentTimeFooterAndColor(embedBuilder);
             buttonBuilder.WithButton("Вклад", "MoneyControl");
             buttonBuilder.WithButton("Кредиты", "CreditsControl");
             buttonBuilder.WithButton("Праздники", "HolidayControl");
@@ -36,7 +44,7 @@ namespace TripleUnionBot.Classes
             embedBuilder.Title = "Информация о вкладе";
             embedBuilder.AddField("Баланс:", $"{DataBank.UnionInfo.Money} ₽", true);
             embedBuilder.AddField("Процент:", $"{DataBank.UnionInfo.Percent}%", true);
-            ApplyCurrentTimeFooter(embedBuilder);
+            ApplyCurrentTimeFooterAndColor(embedBuilder);
             buttonBuilder.WithButton("Добавить", "AddMoneyMenu");
             buttonBuilder.WithButton("Потратить", "SpendMoneyMenu");
             buttonBuilder.WithButton("История", "TransactionHistory");
@@ -48,7 +56,7 @@ namespace TripleUnionBot.Classes
         {
             embedBuilder.Title = "Информация о кредитах";
             embedBuilder.AddField("Всего кредитов:", DataBank.UnionInfo.Credits.Count, true);
-            ApplyCurrentTimeFooter(embedBuilder);
+            ApplyCurrentTimeFooterAndColor(embedBuilder);
             buttonBuilder.WithButton("Добавить кредит", "AddMoney");
             buttonBuilder.WithButton("Закрыть кредит", "SpendMoney");
             buttonBuilder.WithButton("Назад", "InfoMenu");
@@ -63,7 +71,7 @@ namespace TripleUnionBot.Classes
             {
                 embedBuilder.AddField("Сегодня:", foundInfo.Name, true);
             }
-            ApplyCurrentTimeFooter(embedBuilder);
+            ApplyCurrentTimeFooterAndColor(embedBuilder);
             buttonBuilder.WithButton("Список", "ListHoliday:0");
             buttonBuilder.WithButton("Добавить", "AddHoliday");
             buttonBuilder.WithButton("Убрать", "RemoveHoliday");
@@ -90,7 +98,7 @@ namespace TripleUnionBot.Classes
                 builder.AppendLine($"[{DataBank.UnionInfo.Holidays[counter].Date.ToString("dd.MM.yyyy")}] {DataBank.UnionInfo.Holidays[counter].Name}");
             }
             embedBuilder.AddField($"Страница {page + 1}", builder.ToString());
-            ApplyCurrentTimeFooter(embedBuilder);
+            ApplyCurrentTimeFooterAndColor(embedBuilder);
             int totalPageCount;
             if ((double)DataBank.UnionInfo.Holidays.Count / 30 % 1 != 0)
             {
@@ -184,7 +192,7 @@ namespace TripleUnionBot.Classes
                     .WithCustomId($"HolidayInput")
                     .WithStyle(TextInputStyle.Short)
                     .WithMinLength(1)
-                    .WithMaxLength(10)
+                    .WithMaxLength(20)
                     .WithRequired(true)
                     .WithPlaceholder("228"))
                 .AddTextInput(new TextInputBuilder()
