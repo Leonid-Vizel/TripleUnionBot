@@ -56,22 +56,20 @@ namespace TripleUnionBot.Classes
 
         public bool ExecuteWaste(UnionMember member, decimal money, string? description = null)
         {
-            Transaction transaction = new Transaction(GetNextTransactionId(), member, -money, description, DateTime.Now);
             if (money > Money)
             {
                 return false;
             }
             Money -= money;
-            Transactions.Add(transaction);
+            Transactions.Add(new Transaction(GetNextTransactionId(), member, -money, description, DateTime.Now));
             //Db interation
             return true;
         }
 
         public void ExecuteAddition(UnionMember member, decimal money, string? description = null)
         {
-            Transaction transaction = new Transaction(GetNextTransactionId(), member, money, description, DateTime.Now);
             Money += money;
-            Transactions.Add(transaction);
+            Transactions.Add(new Transaction(GetNextTransactionId(), member, money, description, DateTime.Now));
             //Db interation
         }
 
