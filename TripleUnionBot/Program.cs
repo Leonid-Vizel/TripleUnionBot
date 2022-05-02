@@ -8,7 +8,7 @@ DataBank.UnionInfo = new UnionInfo();
 DiscordSocketClient _client = new DiscordSocketClient(); //<-- Создание объекта клиента
 _client.Ready += ConfigureCommands; //<- Настройка слэш-комманд бота
 _client.SlashCommandExecuted += SlashCommandHandler;//<- Настройка обработки слэш-комманд бота
-_client.ModalSubmitted += HandleModalSubmit;
+_client.ModalSubmitted += HandleModalSubmit; //<-- Настройка обработки вопросов
 _client.ButtonExecuted += HandleButtonClick; //<-- Настройка обработки кнопок
 var token = File.ReadAllText("bot.token"); //<-- Считывание токена бота
 await _client.LoginAsync(TokenType.Bot, token); //<-- Бот логинится
