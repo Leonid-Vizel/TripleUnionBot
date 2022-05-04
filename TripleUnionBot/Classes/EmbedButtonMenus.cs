@@ -81,6 +81,13 @@ namespace TripleUnionBot.Classes
         public static void ApplyHolidayList(int page, EmbedBuilder embedBuilder, ComponentBuilder buttonBuilder)
         {
             embedBuilder.Title = "Спиок праздников";
+            ApplyCurrentTimeFooterAndColor(embedBuilder);
+            buttonBuilder.WithButton("Назад", "HolidayControl");
+            if (DataBank.UnionInfo.Holidays.Count == 0)
+            {
+                embedBuilder.AddField("Страница 1","🕸Праздновать пока нечего🕸");
+                return;
+            }
             int counter = page * 30;
             if (counter >= DataBank.UnionInfo.Holidays.Count)
             {
@@ -98,7 +105,6 @@ namespace TripleUnionBot.Classes
                 builder.AppendLine($"[{DataBank.UnionInfo.Holidays[counter].Date.ToString("dd.MM.yyyy")}] {DataBank.UnionInfo.Holidays[counter].Name}");
             }
             embedBuilder.AddField($"Страница {page + 1}", builder.ToString());
-            ApplyCurrentTimeFooterAndColor(embedBuilder);
             int totalPageCount;
             if ((double)DataBank.UnionInfo.Holidays.Count / 30 % 1 != 0)
             {
@@ -115,24 +121,37 @@ namespace TripleUnionBot.Classes
                     buttonBuilder.WithButton((i+1).ToString(), $"ListHoliday:{i}");
                 }
             }
-            buttonBuilder.WithButton("Назад", "HolidayControl");
         }
 
         public static void ApplyAddMoneyMenu(ComponentBuilder buttonBuilder)
         {
-            buttonBuilder.WithButton("Эмиль Максудов", "EmilMaksudovInvestment");
-            buttonBuilder.WithButton("Эмиль Мумджи", "EmilMumdzhiInvestment");
-            buttonBuilder.WithButton("Никита Гордеев", "NikitaInvestment");
-            buttonBuilder.WithButton("Общее вложение", "GeneralInvestment");
+            buttonBuilder.WithSelectMenu(
+                new SelectMenuBuilder()
+                    .WithCustomId("InvestmentMenu")
+                    .WithOptions(
+                        new List<SelectMenuOptionBuilder>()
+                        {
+                            new SelectMenuOptionBuilder().WithValue("EmilMaksudovInvestment").WithLabel("Эмиль Максудов"),
+                            new SelectMenuOptionBuilder().WithValue("EmilMumdzhiInvestment").WithLabel("Эмиль Мумджи"),
+                            new SelectMenuOptionBuilder().WithValue("NikitaInvestment").WithLabel("Никита Гордеев"),
+                            new SelectMenuOptionBuilder().WithValue("GeneralInvestment").WithLabel("Общее вложение"),
+                        }).WithPlaceholder("Выберите от лица кого будет начисление"));
             buttonBuilder.WithButton("Назад", "MoneyControl");
         }
 
         public static void ApplyRemoveMoneyMenu(ComponentBuilder buttonBuilder)
         {
-            buttonBuilder.WithButton("Эмиль Максудов", "EmilMaksudovSpend");
-            buttonBuilder.WithButton("Эмиль Мумджи", "EmilMumdzhiSpend");
-            buttonBuilder.WithButton("Никита Гордеев", "NikitaSpend");
-            buttonBuilder.WithButton("Общая трата", "GeneralSpend");
+            buttonBuilder.WithSelectMenu(
+                new SelectMenuBuilder()
+                    .WithCustomId("SpendMenu")
+                    .WithOptions(
+                        new List<SelectMenuOptionBuilder>()
+                        {
+                            new SelectMenuOptionBuilder().WithValue("EmilMaksudovSpend").WithLabel("Эмиль Максудов"),
+                            new SelectMenuOptionBuilder().WithValue("EmilMumdzhiSpend").WithLabel("Эмиль Мумджи"),
+                            new SelectMenuOptionBuilder().WithValue("NikitaSpend").WithLabel("Никита Гордеев"),
+                            new SelectMenuOptionBuilder().WithValue("GeneralSpend").WithLabel("Общее вложение"),
+                        }).WithPlaceholder("Выберите от лица кого будет счисление"));
             buttonBuilder.WithButton("Назад", "MoneyControl");
         }
 

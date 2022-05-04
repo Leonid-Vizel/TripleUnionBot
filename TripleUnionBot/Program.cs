@@ -10,6 +10,7 @@ _client.Ready += ConfigureCommands; //<- Настройка слэш-комма�
 _client.SlashCommandExecuted += SlashCommandHandler;//<- Настройка обработки слэш-комманд бота
 _client.ModalSubmitted += HandleModalSubmit; //<-- Настройка обработки вопросов
 _client.ButtonExecuted += HandleButtonClick; //<-- Настройка обработки кнопок
+_client.SelectMenuExecuted += HandleSelectMenu; //<-- Найтройка обработки выпадающих меню
 var token = File.ReadAllText("bot.token"); //<-- Считывание токена бота
 await _client.LoginAsync(TokenType.Bot, token); //<-- Бот логинится
 await _client.StartAsync(); //<-- Бот запускается
@@ -55,49 +56,44 @@ async Task HandleButtonClick(SocketMessageComponent component)
     {
         case "InfoMenu":
             EmbedButtonMenus.ApplyInfoMenu(embedBuilder,buttonBuilder);
-            await component.Message.ModifyAsync(x =>
+            await component.UpdateAsync(x =>
             {
                 x.Content = null;
                 x.Embeds = new Embed[1] { embedBuilder.Build() };
-            });
-            await component.UpdateAsync(x =>
-            {
                 x.Components = buttonBuilder.Build();
             });
             break;
         case "MoneyControl":
-            EmbedButtonMenus.ApplyMoneyControl(embedBuilder, buttonBuilder);
-            await component.Message.ModifyAsync(x =>
+            try
             {
-                x.Content = null;
-                x.Embeds = new Embed[1] { embedBuilder.Build() };
-            });
-            await component.UpdateAsync(x =>
+                EmbedButtonMenus.ApplyMoneyControl(embedBuilder, buttonBuilder);
+                await component.UpdateAsync(x =>
+                {
+                    x.Content = null;
+                    x.Embeds = new Embed[1] { embedBuilder.Build() };
+                    x.Components = buttonBuilder.Build();
+                });
+            }
+            catch(Exception ex)
             {
-                x.Components = buttonBuilder.Build();
-            });
+                Console.WriteLine(ex);
+            }
             break;
         case "CreditsControl":
             EmbedButtonMenus.ApplyCreditsControl(embedBuilder, buttonBuilder);
-            await component.Message.ModifyAsync(x =>
+            await component.UpdateAsync(x =>
             {
                 x.Content = null;
                 x.Embeds = new Embed[1] { embedBuilder.Build() };
-            });
-            await component.UpdateAsync(x =>
-            {
                 x.Components = buttonBuilder.Build();
             });
             break;
         case "HolidayControl":
             EmbedButtonMenus.ApplyHolidayControl(embedBuilder, buttonBuilder);
-            await component.Message.ModifyAsync(x =>
+            await component.UpdateAsync(x =>
             {
                 x.Content = null;
                 x.Embeds = new Embed[1] { embedBuilder.Build() };
-            });
-            await component.UpdateAsync(x =>
-            {
                 x.Components = buttonBuilder.Build();
             });
             break;
@@ -111,45 +107,25 @@ async Task HandleButtonClick(SocketMessageComponent component)
             break;
         case "AddMoneyMenu":
             EmbedButtonMenus.ApplyAddMoneyMenu(buttonBuilder);
-            await component.Message.ModifyAsync(x =>
-            {
-                x.Content = "Выберите от лица кого будет начисление:";
-                x.Embeds = null;
-            });
             await component.UpdateAsync(x =>
             {
+                x.Content = null;
+                x.Embeds = null;
                 x.Components = buttonBuilder.Build();
             });
             break;
         case "SpendMoneyMenu":
             EmbedButtonMenus.ApplyRemoveMoneyMenu(buttonBuilder);
-            await component.Message.ModifyAsync(x =>
-            {
-                x.Content = "Выберите от лица кого будет счисление:";
-                x.Embeds = null;
-            });
             await component.UpdateAsync(x =>
             {
+                x.Content = null;
+                x.Embeds = null;
                 x.Components = buttonBuilder.Build();
             });
             break;
         case "SetPercent":
             await component.Message.DeleteAsync();
             await component.RespondWithModalAsync(EmbedButtonMenus.ApplySetPercent().Build());
-            break;
-        case "EmilMaksudovInvestment":
-        case "EmilMumdzhiInvestment":
-        case "NikitaInvestment":
-        case "GeneralInvestment":
-            await component.Message.DeleteAsync();
-            await component.RespondWithModalAsync(EmbedButtonMenus.ApplyInestment(component.Data.CustomId).Build());
-            break;
-        case "EmilMaksudovSpend":
-        case "EmilMumdzhiSpend":
-        case "NikitaSpend":
-        case "GeneralSpend":
-            await component.Message.DeleteAsync();
-            await component.RespondWithModalAsync(EmbedButtonMenus.ApplySpend(component.Data.CustomId).Build());
             break;
         default:
             if (component.Data.CustomId.StartsWith("ListHoliday"))
@@ -158,13 +134,10 @@ async Task HandleButtonClick(SocketMessageComponent component)
                 if (int.TryParse(pageString, out int pageParsed))
                 {
                     EmbedButtonMenus.ApplyHolidayList(pageParsed, embedBuilder, buttonBuilder);
-                    await component.Message.ModifyAsync(x =>
+                    await component.UpdateAsync(x =>
                     {
                         x.Content = null;
                         x.Embeds = new Embed[1] { embedBuilder.Build() };
-                    });
-                    await component.UpdateAsync(x =>
-                    {
                         x.Components = buttonBuilder.Build();
                     });
                 }
@@ -390,6 +363,25 @@ async Task HandleModalSubmit(SocketModal modal)
                 EmbedButtonMenus.ApplyMoneyControl(embedBuilder, buttonBuilder);
                 await modal.RespondAsync("Ошибка снятия", new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
             }
+            break;
+    }
+}
+
+async Task HandleSelectMenu(SocketMessageComponent component)
+{
+    if (component.Data.Values.Count == 0)
+    {
+        return; //<-- Для избежания ошибки
+    }
+    switch(component.Data.CustomId)
+    {
+        case "InvestmentMenu":
+            await component.RespondWithModalAsync(EmbedButtonMenus.ApplyInestment(component.Data.Values.First()).Build());
+            await component.Message.DeleteAsync();
+            break;
+        case "SpendMenu":
+            await component.RespondWithModalAsync(EmbedButtonMenus.ApplySpend(component.Data.Values.First()).Build());
+            await component.Message.DeleteAsync();
             break;
     }
 }
