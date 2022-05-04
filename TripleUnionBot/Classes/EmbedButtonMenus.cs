@@ -28,16 +28,10 @@ namespace TripleUnionBot.Classes
             embedBuilder.Title = "Состояние казны";
             embedBuilder.AddField("Баланс:", $"{DataBank.UnionInfo.Money} ₽", true);
             embedBuilder.AddField("Процент:", $"{DataBank.UnionInfo.Percent}%", true);
-            HolidayInfo? foundHoliday = DataBank.UnionInfo.CheckIfDayIsHoliday(DateTime.Today);
-            if (foundHoliday != null)
-            {
-                embedBuilder.AddField("Сегодня:", foundHoliday.Name);
-            }
             ApplyCurrentTimeFooterAndColor(embedBuilder);
             buttonBuilder.WithButton("Вклад", "MoneyControl");
             buttonBuilder.WithButton("Кредиты", "CreditsControl");
-            buttonBuilder.WithButton("Праздники", "HolidayControl");
-            buttonBuilder.WithButton("Настройки", "Settings");
+            buttonBuilder.WithButton("История", "TransactionHistory");
         }
 
         public static void ApplyMoneyControl(EmbedBuilder embedBuilder, ComponentBuilder buttonBuilder)
@@ -47,7 +41,14 @@ namespace TripleUnionBot.Classes
             embedBuilder.AddField("Процент:", $"{DataBank.UnionInfo.Percent}%", true);
             ApplyCurrentTimeFooterAndColor(embedBuilder);
             buttonBuilder.WithButton("Добавить", "AddMoneyMenu");
-            buttonBuilder.WithButton("Потратить", "SpendMoneyMenu");
+            if (DataBank.UnionInfo.Money == 0)
+            {
+                buttonBuilder.WithButton("Потратить", "SpendMoneyMenu", disabled: true);
+            }
+            else
+            {
+                buttonBuilder.WithButton("Потратить", "SpendMoneyMenu");
+            }
             buttonBuilder.WithButton("История", "TransactionHistory");
             buttonBuilder.WithButton("Изменить процент", "SetPercent");
             buttonBuilder.WithButton("Назад", "InfoMenu");
@@ -58,8 +59,16 @@ namespace TripleUnionBot.Classes
             embedBuilder.Title = "Информация о кредитах";
             embedBuilder.AddField("Всего кредитов:", DataBank.UnionInfo.Credits.Count, true);
             ApplyCurrentTimeFooterAndColor(embedBuilder);
-            buttonBuilder.WithButton("Добавить кредит", "AddMoney");
-            buttonBuilder.WithButton("Закрыть кредит", "SpendMoney");
+            buttonBuilder.WithButton("Список", "CreditList");
+            buttonBuilder.WithButton("Добавить", "AddMoney");
+            if (DataBank.UnionInfo.Credits.Count == 0)
+            {
+                buttonBuilder.WithButton("Закрыть", "SpendMoney", disabled: true);
+            }
+            else
+            {
+                buttonBuilder.WithButton("Закрыть", "SpendMoney");
+            }
             buttonBuilder.WithButton("Назад", "InfoMenu");
         }
 
@@ -85,8 +94,7 @@ namespace TripleUnionBot.Classes
             }
             ApplyCurrentTimeFooterAndColor(embedBuilder);
             buttonBuilder.WithButton("Задать текущий канал", "SetCurrentChannel");
-            buttonBuilder.WithButton("Сброс настроек", "SetDefault");
-            buttonBuilder.WithButton("Назад", "InfoMenu");
+            buttonBuilder.WithButton("Сброс", "SetDefault");
         }
 
         public static void ApplyHolidayControl(EmbedBuilder embedBuilder, ComponentBuilder buttonBuilder)
@@ -101,8 +109,14 @@ namespace TripleUnionBot.Classes
             ApplyCurrentTimeFooterAndColor(embedBuilder);
             buttonBuilder.WithButton("Список", "ListHoliday:0");
             buttonBuilder.WithButton("Добавить", "AddHoliday");
-            buttonBuilder.WithButton("Убрать", "RemoveHoliday");
-            buttonBuilder.WithButton("Назад", "InfoMenu");
+            if (DataBank.UnionInfo.Holidays.Count == 0)
+            {
+                buttonBuilder.WithButton("Убрать", "RemoveHoliday", disabled: true);
+            }
+            else
+            {
+                buttonBuilder.WithButton("Убрать", "RemoveHoliday");
+            }
         }
 
         public static void ApplyHolidayList(int page, EmbedBuilder embedBuilder, ComponentBuilder buttonBuilder)
@@ -112,7 +126,7 @@ namespace TripleUnionBot.Classes
             buttonBuilder.WithButton("Назад", "HolidayControl");
             if (DataBank.UnionInfo.Holidays.Count == 0)
             {
-                embedBuilder.AddField("Страница 1","🕸Праздновать пока нечего🕸");
+                embedBuilder.AddField("Страница 1", "🕸Праздновать пока нечего🕸");
                 return;
             }
             int counter = page * 30;
@@ -145,7 +159,7 @@ namespace TripleUnionBot.Classes
             {
                 if (i != page)
                 {
-                    buttonBuilder.WithButton((i+1).ToString(), $"ListHoliday:{i}");
+                    buttonBuilder.WithButton((i + 1).ToString(), $"ListHoliday:{i}");
                 }
             }
         }
@@ -231,7 +245,7 @@ namespace TripleUnionBot.Classes
         public static ModalBuilder ApplyAddHoliday()
         {
             return new ModalBuilder()
-                .WithCustomId($"HolidayAddModal")
+                .WithCustomId("HolidayAddModal")
                 .WithTitle("Добавление праздника")
                 .AddTextInput(new TextInputBuilder()
                     .WithLabel("Название праздника:")

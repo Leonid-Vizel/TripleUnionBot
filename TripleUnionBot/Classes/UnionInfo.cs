@@ -2,6 +2,9 @@
 {
     internal class UnionInfo
     {
+        public string ImageLink { get; private set; }
+        public string Slogan { get; private set; }
+        public DateTime BeginDate { get; private set; }
         public decimal Money { get; private set; }
         public decimal Percent { get; private set; }
         public List<HolidayInfo> Holidays { get; private set; }

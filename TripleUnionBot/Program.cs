@@ -33,12 +33,13 @@ holidayCheckTimer.Elapsed += CheckTodayHoliday;
 
 async Task ConfigureCommands()
 {
-    SlashCommandBuilder[] commandBuilders = new SlashCommandBuilder[2]
+    SlashCommandBuilder[] commandBuilders = new SlashCommandBuilder[]
     {
-        new SlashCommandBuilder().WithName("info").WithDescription("Показывает информацию о состоянии союза"),
-        new SlashCommandBuilder().WithName("ебани").WithDescription("Ебанёт число в указанном Вами отрезке")
-            .AddOption("начало",ApplicationCommandOptionType.Integer, "Начало отрезка", true, minValue: int.MinValue, maxValue: int.MaxValue)
-            .AddOption("конец", ApplicationCommandOptionType.Integer, "Конец отрезка", true, minValue: int.MinValue, maxValue: int.MaxValue)
+        new SlashCommandBuilder().WithName("fin").WithDescription("Показывает информацию о казне союза"),
+        new SlashCommandBuilder().WithName("info").WithDescription("Показывает информацию о союзе"),
+        new SlashCommandBuilder().WithName("seleb").WithDescription("Праздники союза"),
+        new SlashCommandBuilder().WithName("rules").WithDescription("Правила союза"),
+        new SlashCommandBuilder().WithName("random").WithDescription("Выдаст рандомного участника союза")
     };
     try
     {
@@ -47,7 +48,7 @@ async Task ConfigureCommands()
         {
             foreach (SlashCommandBuilder commandBuilder in commandBuilders)
             {
-                await guild.CreateApplicationCommandAsync(commandBuilder.Build());
+                await _client.CreateGlobalApplicationCommandAsync(commandBuilder.Build());
                 Console.WriteLine($"{commandBuilder.Name} is registered");
             }
         }
@@ -145,7 +146,6 @@ async Task HandleButtonClick(SocketMessageComponent component)
             break;
         case "SetCurrentChannel":
             DataBank.UnionInfo.SetChannelId(component.Message.Channel.Id);
-            Console.WriteLine(component.Message.Channel.GetType().FullName);
             EmbedButtonMenus.ApplySettings(_client, embedBuilder, buttonBuilder);
             await component.UpdateAsync(x =>
             {
@@ -448,56 +448,41 @@ async Task SlashCommandHandler(SocketSlashCommand command)
 {
     switch (command.Data.Name)
     {
-        case "info":
-            EmbedBuilder embedBuilder = new EmbedBuilder();
-            ComponentBuilder buttonBuilder = new ComponentBuilder();
-            EmbedButtonMenus.ApplyInfoMenu(embedBuilder, buttonBuilder);
-            await command.RespondAsync(null, new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
+        case "fin":
+            EmbedBuilder finEmbedBuilder = new EmbedBuilder();
+            ComponentBuilder finbButtonBuilder = new ComponentBuilder();
+            EmbedButtonMenus.ApplyInfoMenu(finEmbedBuilder, finbButtonBuilder);
+            await command.RespondAsync(null, new Embed[1] { finEmbedBuilder.Build() }, components: finbButtonBuilder.Build());
             break;
-        case "ебани":
-            try
+        case "seleb":
+            EmbedBuilder selebEmbedBuilder = new EmbedBuilder();
+            ComponentBuilder selebButtonBuilder = new ComponentBuilder();
+            EmbedButtonMenus.ApplyHolidayControl(selebEmbedBuilder, selebButtonBuilder);
+            await command.RespondAsync(null, new Embed[1] { selebEmbedBuilder.Build() }, components: selebButtonBuilder.Build());
+            break;
+        case "info":
+            EmbedBuilder infoEmbedBuilder = new EmbedBuilder();
+            ComponentBuilder infoButtonBuilder = new ComponentBuilder();
+            EmbedButtonMenus.ApplyInfoMenu(infoEmbedBuilder, infoButtonBuilder);
+            await command.RespondAsync(null, new Embed[1] { infoEmbedBuilder.Build() }, components: infoButtonBuilder.Build());
+            break;
+        case "random":
+            Random random = new Random(Guid.NewGuid().GetHashCode());
+            int number = random.Next(1, 4);
+            string member = "";
+            switch (number)
             {
-                int begin = 0;
-                int end = 0;
-                foreach (SocketSlashCommandDataOption option in command.Data.Options)
-                {
-                    if (option.Name.Equals("начало"))
-                    {
-                        if (option.Value is long)
-                        {
-                            begin = Convert.ToInt32(option.Value);
-                        }
-                        else
-                        {
-                            await command.RespondAsync("Кажется ебануть не получится, произошла ошибка!");
-                        }
-                    }
-                    else if (option.Name.Equals("конец"))
-                    {
-                        if (option.Value is long)
-                        {
-                            end = Convert.ToInt32(option.Value);
-                        }
-                        else
-                        {
-                            await command.RespondAsync("Кажется ебануть не получится, произошла ошибка!");
-                        }
-                    }
-                }
-                if (begin > end)
-                {
-                    await command.RespondAsync("Кажется ебануть не получится, произошла ошибка!");
-                }
-                else
-                {
-                    Random random = new Random(Guid.NewGuid().GetHashCode());
-                    await command.RespondAsync($"Хоба: {random.Next(begin, end + 1)}");
-                }
+                case 1:
+                    member = "Мумджи Эмиль Шамилевич";
+                    break;
+                case 2:
+                    member = "Гордеев Никита Андреевич";
+                    break;
+                case 3:
+                    member = "Максудов Эмиль Альбертович";
+                    break;
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-            }
+            await command.RespondAsync($"Вам выпало число {number}.\nСоответствующий участник: {member}");
             break;
     }
 }
