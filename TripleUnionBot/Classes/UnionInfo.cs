@@ -36,7 +36,6 @@
             return true;
         }
 
-
         public bool SetPercent(decimal updateValue)
         {
             if (updateValue < 0)

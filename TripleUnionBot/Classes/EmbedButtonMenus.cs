@@ -68,7 +68,7 @@ namespace TripleUnionBot.Classes
             embedBuilder.Title = "Настройки бота";
             if (DataBank.UnionInfo.MainChannelId != null)
             {
-                SocketGuildChannel? channel = _client.GetGuild(DataBank.GuildId).GetChannel(DataBank.UnionInfo.MainChannelId.Value);
+                SocketTextChannel? channel = _client.GetGuild(DataBank.GuildId).GetChannel(DataBank.UnionInfo.MainChannelId.Value) as SocketTextChannel;
                 if (channel == null)
                 {
                     DataBank.UnionInfo.SetChannelId(null);
@@ -76,7 +76,7 @@ namespace TripleUnionBot.Classes
                 }
                 else
                 {
-                    embedBuilder.AddField("Канал поздравлений", channel.Name);
+                    embedBuilder.AddField("Канал поздравлений", channel.Mention);
                 }
             }
             else

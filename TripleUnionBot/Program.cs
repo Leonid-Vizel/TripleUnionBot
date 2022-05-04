@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.WebSocket;
+using System.Timers;
 using TripleUnionBot;
 using TripleUnionBot.Classes;
 
@@ -15,6 +16,19 @@ var token = File.ReadAllText("bot.token"); //<-- Считывание токен
 await _client.LoginAsync(TokenType.Bot, token); //<-- Бот логинится
 await _client.StartAsync(); //<-- Бот запускается
 await Task.Delay(-1); //<-- Чтобы прога не закрывалась раньше времени
+#region Настройка таймера поздравлений
+DateTime TimeToExecuteTask;
+if (DateTime.Now.Hour < 12)
+{
+    TimeToExecuteTask = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 12, 0, 0);
+}
+else
+{
+    TimeToExecuteTask = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day + 1, 12, 0, 0);
+}
+System.Timers.Timer holidayCheckTimer = new System.Timers.Timer((TimeToExecuteTask - DateTime.Now).TotalMilliseconds);
+holidayCheckTimer.Elapsed += CheckTodayHoliday;
+#endregion
 #endregion
 
 async Task ConfigureCommands()
@@ -64,20 +78,13 @@ async Task HandleButtonClick(SocketMessageComponent component)
             });
             break;
         case "MoneyControl":
-            try
+            EmbedButtonMenus.ApplyMoneyControl(embedBuilder, buttonBuilder);
+            await component.UpdateAsync(x =>
             {
-                EmbedButtonMenus.ApplyMoneyControl(embedBuilder, buttonBuilder);
-                await component.UpdateAsync(x =>
-                {
-                    x.Content = null;
-                    x.Embeds = new Embed[1] { embedBuilder.Build() };
-                    x.Components = buttonBuilder.Build();
-                });
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
-            }
+                x.Content = null;
+                x.Embeds = new Embed[1] { embedBuilder.Build() };
+                x.Components = buttonBuilder.Build();
+            });
             break;
         case "CreditsControl":
             EmbedButtonMenus.ApplyCreditsControl(embedBuilder, buttonBuilder);
@@ -138,6 +145,7 @@ async Task HandleButtonClick(SocketMessageComponent component)
             break;
         case "SetCurrentChannel":
             DataBank.UnionInfo.SetChannelId(component.Message.Channel.Id);
+            Console.WriteLine(component.Message.Channel.GetType().FullName);
             EmbedButtonMenus.ApplySettings(_client, embedBuilder, buttonBuilder);
             await component.UpdateAsync(x =>
             {
@@ -413,6 +421,27 @@ async Task HandleSelectMenu(SocketMessageComponent component)
             await component.Message.DeleteAsync();
             break;
     }
+}
+
+async void CheckTodayHoliday(object? sender, ElapsedEventArgs e)
+{
+    holidayCheckTimer.Stop();
+    HolidayInfo? foundHoliday = DataBank.UnionInfo.CheckIfDayIsHoliday(DateTime.Today);
+    if (foundHoliday != null && DataBank.UnionInfo.MainChannelId != null)
+    {
+        SocketTextChannel? channel = _client.GetGuild(DataBank.GuildId).GetChannel(DataBank.UnionInfo.MainChannelId.Value) as SocketTextChannel;
+        if (channel != null)
+        {
+            await channel.SendMessageAsync($"{channel.Mention}, с праздником!\nСегодня {foundHoliday.Name}");
+        }
+        else
+        {
+            DataBank.UnionInfo.SetChannelId(null);
+        }
+    }
+    DateTime TimeToExecuteTask = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day + 1, 12, 0, 0);
+    holidayCheckTimer.Interval = (TimeToExecuteTask - DateTime.Now).TotalMilliseconds;
+    holidayCheckTimer.Start();
 }
 
 async Task SlashCommandHandler(SocketSlashCommand command)
