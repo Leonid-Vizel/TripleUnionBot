@@ -7,7 +7,7 @@
         public List<HolidayInfo> Holidays { get; private set; }
         public List<Transaction> Transactions { get; private set; }
         public List<CreditInfo> Credits { get; private set; }
-        public string MainChannelId { get; private set; }
+        public ulong? MainChannelId { get; private set; }
 
         public UnionInfo()
         {
@@ -25,7 +25,7 @@
             Credits = credits.ToList();
         }
 
-        public bool SetChannelId(string channelId)
+        public bool SetChannelId(ulong? channelId)
         {
             if (channelId.Equals(MainChannelId))
             {
@@ -72,6 +72,12 @@
             HolidayInfo holidayInfo = new HolidayInfo(GetNextHolidayId(),name,date);
             Holidays.Add(holidayInfo);
             //Db interaction
+        }
+
+        public void RemoveHoliday(HolidayInfo found)
+        {
+            Holidays.Remove(found);
+            //DbInteraction
         }
 
         private int GetNextTransactionId()

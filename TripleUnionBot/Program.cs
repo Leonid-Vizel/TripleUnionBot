@@ -28,7 +28,7 @@ async Task ConfigureCommands()
     };
     try
     {
-        SocketGuild? guild = _client.GetGuild(886180298239402034);
+        SocketGuild? guild = _client.GetGuild(DataBank.GuildId);
         if (guild != null)
         {
             foreach (SlashCommandBuilder commandBuilder in commandBuilders)
@@ -55,7 +55,7 @@ async Task HandleButtonClick(SocketMessageComponent component)
     switch (component.Data.CustomId)
     {
         case "InfoMenu":
-            EmbedButtonMenus.ApplyInfoMenu(embedBuilder,buttonBuilder);
+            EmbedButtonMenus.ApplyInfoMenu(embedBuilder, buttonBuilder);
             await component.UpdateAsync(x =>
             {
                 x.Content = null;
@@ -74,7 +74,7 @@ async Task HandleButtonClick(SocketMessageComponent component)
                     x.Components = buttonBuilder.Build();
                 });
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine(ex);
             }
@@ -98,12 +98,12 @@ async Task HandleButtonClick(SocketMessageComponent component)
             });
             break;
         case "AddHoliday":
-            await component.Message.DeleteAsync();
             await component.RespondWithModalAsync(EmbedButtonMenus.ApplyAddHoliday().Build());
+            await component.Message.DeleteAsync();
             break;
         case "RemoveHoliday":
-            await component.Message.DeleteAsync();
             await component.RespondWithModalAsync(EmbedButtonMenus.ApplyRemoveHoliday().Build());
+            await component.Message.DeleteAsync();
             break;
         case "AddMoneyMenu":
             EmbedButtonMenus.ApplyAddMoneyMenu(buttonBuilder);
@@ -124,8 +124,37 @@ async Task HandleButtonClick(SocketMessageComponent component)
             });
             break;
         case "SetPercent":
-            await component.Message.DeleteAsync();
             await component.RespondWithModalAsync(EmbedButtonMenus.ApplySetPercent().Build());
+            await component.Message.DeleteAsync();
+            break;
+        case "Settings":
+            EmbedButtonMenus.ApplySettings(_client, embedBuilder, buttonBuilder);
+            await component.UpdateAsync(x =>
+            {
+                x.Content = null;
+                x.Embeds = new Embed[1] { embedBuilder.Build() };
+                x.Components = buttonBuilder.Build();
+            });
+            break;
+        case "SetCurrentChannel":
+            DataBank.UnionInfo.SetChannelId(component.Message.Channel.Id);
+            EmbedButtonMenus.ApplySettings(_client, embedBuilder, buttonBuilder);
+            await component.UpdateAsync(x =>
+            {
+                x.Content = null;
+                x.Embeds = new Embed[1] { embedBuilder.Build() };
+                x.Components = buttonBuilder.Build();
+            });
+            break;
+        case "SetDefault":
+            DataBank.UnionInfo.SetChannelId(null);
+            EmbedButtonMenus.ApplySettings(_client, embedBuilder, buttonBuilder);
+            await component.UpdateAsync(x =>
+            {
+                x.Content = null;
+                x.Embeds = new Embed[1] { embedBuilder.Build() };
+                x.Components = buttonBuilder.Build();
+            });
             break;
         default:
             if (component.Data.CustomId.StartsWith("ListHoliday"))
@@ -204,7 +233,7 @@ async Task HandleModalSubmit(SocketModal modal)
         case "HolidayAddModal":
             string nameParse = string.Empty;
             DateTime dateParse = DateTime.Now;
-            foreach(SocketMessageComponentData data in modal.Data.Components)
+            foreach (SocketMessageComponentData data in modal.Data.Components)
             {
                 if (data.CustomId.Equals("HolidayInput"))
                 {
@@ -212,7 +241,7 @@ async Task HandleModalSubmit(SocketModal modal)
                 }
                 else if (data.CustomId.Equals("HolidayDate"))
                 {
-                    if (!DateTime.TryParse(data.Value,out dateParse))
+                    if (!DateTime.TryParse(data.Value, out dateParse))
                     {
                         EmbedButtonMenus.ApplyHolidayControl(embedBuilder, buttonBuilder);
                         await modal.RespondAsync("Неверынй формат даты", new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
@@ -235,7 +264,7 @@ async Task HandleModalSubmit(SocketModal modal)
             }
             else
             {
-                if (DataBank.UnionInfo.Holidays.Any(x=>x.Name.ToLower().Equals(nameParse)))
+                if (DataBank.UnionInfo.Holidays.Any(x => x.Name.ToLower().Equals(nameParse)))
                 {
                     EmbedButtonMenus.ApplyHolidayControl(embedBuilder, buttonBuilder);
                     await modal.RespondAsync("Праздник с похожим названием уже сущетсвует", new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
@@ -269,7 +298,7 @@ async Task HandleModalSubmit(SocketModal modal)
             }
             decimal inputAddMoney = 0;
             string? descriptionAdd = null;
-            foreach(SocketMessageComponentData data in modal.Data.Components)
+            foreach (SocketMessageComponentData data in modal.Data.Components)
             {
                 if (data.CustomId.EndsWith("Input"))
                 {
@@ -373,7 +402,7 @@ async Task HandleSelectMenu(SocketMessageComponent component)
     {
         return; //<-- Для избежания ошибки
     }
-    switch(component.Data.CustomId)
+    switch (component.Data.CustomId)
     {
         case "InvestmentMenu":
             await component.RespondWithModalAsync(EmbedButtonMenus.ApplyInestment(component.Data.Values.First()).Build());

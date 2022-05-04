@@ -1,4 +1,5 @@
 ﻿using Discord;
+using Discord.WebSocket;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,6 +37,7 @@ namespace TripleUnionBot.Classes
             buttonBuilder.WithButton("Вклад", "MoneyControl");
             buttonBuilder.WithButton("Кредиты", "CreditsControl");
             buttonBuilder.WithButton("Праздники", "HolidayControl");
+            buttonBuilder.WithButton("Настройки", "Settings");
         }
 
         public static void ApplyMoneyControl(EmbedBuilder embedBuilder, ComponentBuilder buttonBuilder)
@@ -58,6 +60,32 @@ namespace TripleUnionBot.Classes
             ApplyCurrentTimeFooterAndColor(embedBuilder);
             buttonBuilder.WithButton("Добавить кредит", "AddMoney");
             buttonBuilder.WithButton("Закрыть кредит", "SpendMoney");
+            buttonBuilder.WithButton("Назад", "InfoMenu");
+        }
+
+        public static void ApplySettings(DiscordSocketClient _client, EmbedBuilder embedBuilder, ComponentBuilder buttonBuilder)
+        {
+            embedBuilder.Title = "Настройки бота";
+            if (DataBank.UnionInfo.MainChannelId != null)
+            {
+                SocketGuildChannel? channel = _client.GetGuild(DataBank.GuildId).GetChannel(DataBank.UnionInfo.MainChannelId.Value);
+                if (channel == null)
+                {
+                    DataBank.UnionInfo.SetChannelId(null);
+                    embedBuilder.AddField("Канал поздравлений", "Не определён");
+                }
+                else
+                {
+                    embedBuilder.AddField("Канал поздравлений", channel.Name);
+                }
+            }
+            else
+            {
+                embedBuilder.AddField("Канал поздравлений", "Не определён");
+            }
+            ApplyCurrentTimeFooterAndColor(embedBuilder);
+            buttonBuilder.WithButton("Задать текущий канал", "SetCurrentChannel");
+            buttonBuilder.WithButton("Сброс настроек", "SetDefault");
             buttonBuilder.WithButton("Назад", "InfoMenu");
         }
 
