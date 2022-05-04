@@ -36,7 +36,6 @@ namespace TripleUnionBot.Classes
             buttonBuilder.WithButton("Вклад", "MoneyControl");
             buttonBuilder.WithButton("Кредиты", "CreditsControl");
             buttonBuilder.WithButton("Праздники", "HolidayControl");
-            buttonBuilder.WithButton("Настройки", "Settings");
         }
 
         public static void ApplyMoneyControl(EmbedBuilder embedBuilder, ComponentBuilder buttonBuilder)
