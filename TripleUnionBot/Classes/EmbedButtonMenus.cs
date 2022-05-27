@@ -1,10 +1,6 @@
 ﻿using Discord;
 using Discord.WebSocket;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace TripleUnionBot.Classes
 {
@@ -32,6 +28,7 @@ namespace TripleUnionBot.Classes
             buttonBuilder.WithButton("Вклад", "MoneyControl");
             buttonBuilder.WithButton("Кредиты", "CreditsControl");
             buttonBuilder.WithButton("История", "TransactionHistory");
+            buttonBuilder.WithButton("Настройки", "Settings");
         }
 
         public static void ApplyMoneyControl(EmbedBuilder embedBuilder, ComponentBuilder buttonBuilder)

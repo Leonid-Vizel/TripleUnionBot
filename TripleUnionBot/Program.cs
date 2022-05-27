@@ -3,35 +3,89 @@ using Discord.WebSocket;
 using System.Timers;
 using TripleUnionBot;
 using TripleUnionBot.Classes;
+using TripleUnionBot.MethodClasses;
+
+#region Preparing Components
+Dictionary<string, SelectMenusHandler> selectMenuActions = new Dictionary<string, SelectMenusHandler>();
+selectMenuActions.Add("InvestmentMenu", SelectMenus.InvestmentMenu);
+selectMenuActions.Add("SpendMenu", SelectMenus.SpendMenu);
+Dictionary<string, SlashCommandsHandler> commandActions = new Dictionary<string, SlashCommandsHandler>();
+commandActions.Add("fin", Commands.FinCommand);
+commandActions.Add("seleb", Commands.SelebCommand);
+commandActions.Add("info", Commands.InfoCommand);
+commandActions.Add("random", Commands.RandomCommand);
+Dictionary<string, ButtonsHandler> buttonActions = new Dictionary<string, ButtonsHandler>();
+buttonActions.Add("InfoMenu", Buttons.InfoMenu);
+buttonActions.Add("MoneyControl", Buttons.MoneyControl);
+buttonActions.Add("CreditsControl", Buttons.CreditsControl);
+buttonActions.Add("HolidayControl", Buttons.HolidayControl);
+buttonActions.Add("AddHoliday", Buttons.AddHoliday);
+buttonActions.Add("RemoveHoliday", Buttons.RemoveHoliday);
+buttonActions.Add("AddMoneyMenu", Buttons.AddMoneyMenu);
+buttonActions.Add("SpendMoneyMenu", Buttons.SpendMoneyMenu);
+buttonActions.Add("SetPercent", Buttons.SetPercent);
+buttonActions.Add("Settings", Buttons.Settings);
+buttonActions.Add("SetCurrentChannel", Buttons.SetCurrentChannel);
+buttonActions.Add("SetDefault", Buttons.SetDefault);
+buttonActions.Add("ListHoliday", Buttons.ListHoliday);
+Dictionary<string, ModalsHandler> modalActions = new Dictionary<string, ModalsHandler>();
+modalActions.Add("PercentModal", Modals.PercentModal);
+modalActions.Add("HolidayRemoveModal", Modals.HolidayRemoveModal);
+modalActions.Add("HolidayAddModal", Modals.HolidayAddModal);
+modalActions.Add("EmilMaksudovInvestmentModal", Modals.InvestmentModal);
+modalActions.Add("EmilMumdzhiInvestmentModal", Modals.InvestmentModal);
+modalActions.Add("NikitaInvestmentModal", Modals.InvestmentModal);
+modalActions.Add("GeneralInvestmentModal", Modals.InvestmentModal);
+modalActions.Add("EmilMaksudovSpendModal", Modals.InvestmentModal);
+modalActions.Add("EmilMumdzhiSpendModal", Modals.InvestmentModal);
+modalActions.Add("NikitaSpendModal", Modals.InvestmentModal);
+modalActions.Add("GeneralSpendModal", Modals.InvestmentModal);
+#endregion
 
 #region Main Block
+System.Timers.Timer? holidayCheckTimer = null;
 DataBank.UnionInfo = new UnionInfo();
 DiscordSocketClient _client = new DiscordSocketClient(); //<-- Создание объекта клиента
-_client.Ready += ConfigureCommands; //<- Настройка слэш-комманд бота
-_client.SlashCommandExecuted += SlashCommandHandler;//<- Настройка обработки слэш-комманд бота
-_client.ModalSubmitted += HandleModalSubmit; //<-- Настройка обработки вопросов
-_client.ButtonExecuted += HandleButtonClick; //<-- Настройка обработки кнопок
-_client.SelectMenuExecuted += HandleSelectMenu; //<-- Найтройка обработки выпадающих меню
-var token = File.ReadAllText("bot.token"); //<-- Считывание токена бота
-await _client.LoginAsync(TokenType.Bot, token); //<-- Бот логинится
-await _client.StartAsync(); //<-- Бот запускается
+ConfigureEvents();
+await StartBot();
+ConfigureHolidays();
 await Task.Delay(-1); //<-- Чтобы прога не закрывалась раньше времени
-#region Настройка таймера поздравлений
-DateTime TimeToExecuteTask;
-if (DateTime.Now.Hour < 12)
-{
-    TimeToExecuteTask = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 12, 0, 0);
-}
-else
-{
-    TimeToExecuteTask = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day + 1, 12, 0, 0);
-}
-System.Timers.Timer holidayCheckTimer = new System.Timers.Timer((TimeToExecuteTask - DateTime.Now).TotalMilliseconds);
-holidayCheckTimer.Elapsed += CheckTodayHoliday;
-#endregion
 #endregion
 
-async Task ConfigureCommands()
+#region Setting Up
+void ConfigureHolidays()
+{
+    DateTime TimeToExecuteTask;
+    if (DateTime.Now.Hour < 12)
+    {
+        TimeToExecuteTask = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 12, 0, 0);
+    }
+    else
+    {
+        TimeToExecuteTask = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day + 1, 12, 0, 0);
+    }
+    holidayCheckTimer = new System.Timers.Timer((TimeToExecuteTask - DateTime.Now).TotalMilliseconds);
+    holidayCheckTimer.Elapsed += CheckTodayHoliday;
+
+}
+
+void ConfigureEvents()
+{
+    _client.Ready += ConfigureSlashCommands; //<- Настройка слэш-комманд бота
+    _client.SlashCommandExecuted += SlashCommandHandler;//<- Настройка обработки слэш-комманд бота
+    _client.ModalSubmitted += HandleModalSubmit; //<-- Настройка обработки вопросов
+    _client.ButtonExecuted += HandleButtonClick; //<-- Настройка обработки кнопок
+    _client.SelectMenuExecuted += HandleSelectMenu; //<-- Найтройка обработки выпадающих меню
+}
+
+async Task StartBot()
+{
+    var token = File.ReadAllText("bot.token"); //<-- Считывание токена бота
+    await _client.LoginAsync(TokenType.Bot, token); //<-- Бот логинится
+    await _client.StartAsync(); //<-- Бот запускается
+}
+
+async Task ConfigureSlashCommands()
 {
     SlashCommandBuilder[] commandBuilders = new SlashCommandBuilder[]
     {
@@ -62,345 +116,25 @@ async Task ConfigureCommands()
         Console.WriteLine($"Shit, fuck: {ex}");
     }
 }
+#endregion
 
 async Task HandleButtonClick(SocketMessageComponent component)
 {
-    EmbedBuilder embedBuilder = new EmbedBuilder();
-    ComponentBuilder buttonBuilder = new ComponentBuilder();
-    switch (component.Data.CustomId)
+    if (buttonActions.ContainsKey(component.Data.CustomId))
     {
-        case "InfoMenu":
-            EmbedButtonMenus.ApplyInfoMenu(embedBuilder, buttonBuilder);
-            await component.UpdateAsync(x =>
-            {
-                x.Content = null;
-                x.Embeds = new Embed[1] { embedBuilder.Build() };
-                x.Components = buttonBuilder.Build();
-            });
-            break;
-        case "MoneyControl":
-            EmbedButtonMenus.ApplyMoneyControl(embedBuilder, buttonBuilder);
-            await component.UpdateAsync(x =>
-            {
-                x.Content = null;
-                x.Embeds = new Embed[1] { embedBuilder.Build() };
-                x.Components = buttonBuilder.Build();
-            });
-            break;
-        case "CreditsControl":
-            EmbedButtonMenus.ApplyCreditsControl(embedBuilder, buttonBuilder);
-            await component.UpdateAsync(x =>
-            {
-                x.Content = null;
-                x.Embeds = new Embed[1] { embedBuilder.Build() };
-                x.Components = buttonBuilder.Build();
-            });
-            break;
-        case "HolidayControl":
-            EmbedButtonMenus.ApplyHolidayControl(embedBuilder, buttonBuilder);
-            await component.UpdateAsync(x =>
-            {
-                x.Content = null;
-                x.Embeds = new Embed[1] { embedBuilder.Build() };
-                x.Components = buttonBuilder.Build();
-            });
-            break;
-        case "AddHoliday":
-            await component.RespondWithModalAsync(EmbedButtonMenus.ApplyAddHoliday().Build());
-            await component.Message.DeleteAsync();
-            break;
-        case "RemoveHoliday":
-            await component.RespondWithModalAsync(EmbedButtonMenus.ApplyRemoveHoliday().Build());
-            await component.Message.DeleteAsync();
-            break;
-        case "AddMoneyMenu":
-            EmbedButtonMenus.ApplyAddMoneyMenu(buttonBuilder);
-            await component.UpdateAsync(x =>
-            {
-                x.Content = null;
-                x.Embeds = null;
-                x.Components = buttonBuilder.Build();
-            });
-            break;
-        case "SpendMoneyMenu":
-            EmbedButtonMenus.ApplyRemoveMoneyMenu(buttonBuilder);
-            await component.UpdateAsync(x =>
-            {
-                x.Content = null;
-                x.Embeds = null;
-                x.Components = buttonBuilder.Build();
-            });
-            break;
-        case "SetPercent":
-            await component.RespondWithModalAsync(EmbedButtonMenus.ApplySetPercent().Build());
-            await component.Message.DeleteAsync();
-            break;
-        case "Settings":
-            EmbedButtonMenus.ApplySettings(_client, embedBuilder, buttonBuilder);
-            await component.UpdateAsync(x =>
-            {
-                x.Content = null;
-                x.Embeds = new Embed[1] { embedBuilder.Build() };
-                x.Components = buttonBuilder.Build();
-            });
-            break;
-        case "SetCurrentChannel":
-            DataBank.UnionInfo.SetChannelId(component.Message.Channel.Id);
-            EmbedButtonMenus.ApplySettings(_client, embedBuilder, buttonBuilder);
-            await component.UpdateAsync(x =>
-            {
-                x.Content = null;
-                x.Embeds = new Embed[1] { embedBuilder.Build() };
-                x.Components = buttonBuilder.Build();
-            });
-            break;
-        case "SetDefault":
-            DataBank.UnionInfo.SetChannelId(null);
-            EmbedButtonMenus.ApplySettings(_client, embedBuilder, buttonBuilder);
-            await component.UpdateAsync(x =>
-            {
-                x.Content = null;
-                x.Embeds = new Embed[1] { embedBuilder.Build() };
-                x.Components = buttonBuilder.Build();
-            });
-            break;
-        default:
-            if (component.Data.CustomId.StartsWith("ListHoliday"))
-            {
-                string pageString = component.Data.CustomId.Split(":")[1];
-                if (int.TryParse(pageString, out int pageParsed))
-                {
-                    EmbedButtonMenus.ApplyHolidayList(pageParsed, embedBuilder, buttonBuilder);
-                    await component.UpdateAsync(x =>
-                    {
-                        x.Content = null;
-                        x.Embeds = new Embed[1] { embedBuilder.Build() };
-                        x.Components = buttonBuilder.Build();
-                    });
-                }
-                else
-                {
-                    EmbedButtonMenus.ApplyInfoMenu(embedBuilder, buttonBuilder);
-                    await component.RespondWithModalAsync(EmbedButtonMenus.ApplySpend(component.Data.CustomId).Build());
-                }
-            }
-            return;
+        await buttonActions[component.Data.CustomId].Invoke(component);
+    }
+    else
+    {
+        await buttonActions["ListHoliday"].Invoke(component);
     }
 }
 
 async Task HandleModalSubmit(SocketModal modal)
 {
-    UnionMember currentMember = 0;
-    EmbedBuilder embedBuilder = new EmbedBuilder();
-    ComponentBuilder buttonBuilder = new ComponentBuilder();
-    SocketMessageComponentData? componentData = modal.Data.Components.First();
-    switch (modal.Data.CustomId)
+    if (modalActions.ContainsKey(modal.Data.CustomId))
     {
-        case "PercentModal":
-            if (decimal.TryParse(componentData.Value.Replace(",", "."), out decimal parsePercentResult))
-            {
-                if (DataBank.UnionInfo.SetPercent(parsePercentResult))
-                {
-                    EmbedButtonMenus.ApplyMoneyControl(embedBuilder, buttonBuilder);
-                    await modal.RespondAsync("Процент успешно изменён", new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
-                }
-                else
-                {
-                    EmbedButtonMenus.ApplyMoneyControl(embedBuilder, buttonBuilder);
-                    await modal.RespondAsync("Значение процента не может быть ниже нуля!", new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
-                }
-            }
-            else
-            {
-                EmbedButtonMenus.ApplyMoneyControl(embedBuilder, buttonBuilder);
-                await modal.RespondAsync("Не удалось преоразовать в число, извините.", new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
-            }
-            break;
-        case "HolidayRemoveModal":
-            if (DateTime.TryParse(componentData.Value, out DateTime dateTimeParse))
-            {
-                HolidayInfo? foundInfo = DataBank.UnionInfo.CheckIfDayIsHoliday(dateTimeParse);
-                if (foundInfo != null)
-                {
-                    DataBank.UnionInfo.Holidays.Remove(foundInfo);
-                    EmbedButtonMenus.ApplyHolidayControl(embedBuilder, buttonBuilder);
-                    await modal.RespondAsync($"Праздник '{foundInfo.Name}' был успешно удалён!", new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
-                }
-                else
-                {
-                    EmbedButtonMenus.ApplyHolidayControl(embedBuilder, buttonBuilder);
-                    await modal.RespondAsync("Не найдено праздников на эту дату", new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
-                }
-            }
-            else
-            {
-                EmbedButtonMenus.ApplyHolidayControl(embedBuilder, buttonBuilder);
-                await modal.RespondAsync("Неверынй формат даты", new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
-            }
-            break;
-        case "HolidayAddModal":
-            string nameParse = string.Empty;
-            DateTime dateParse = DateTime.Now;
-            foreach (SocketMessageComponentData data in modal.Data.Components)
-            {
-                if (data.CustomId.Equals("HolidayInput"))
-                {
-                    nameParse = data.Value;
-                }
-                else if (data.CustomId.Equals("HolidayDate"))
-                {
-                    if (!DateTime.TryParse(data.Value, out dateParse))
-                    {
-                        EmbedButtonMenus.ApplyHolidayControl(embedBuilder, buttonBuilder);
-                        await modal.RespondAsync("Неверынй формат даты", new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
-                    }
-                    else
-                    {
-                        HolidayInfo? foundInfo = DataBank.UnionInfo.CheckIfDayIsHoliday(dateParse);
-                        if (foundInfo != null)
-                        {
-                            EmbedButtonMenus.ApplyHolidayControl(embedBuilder, buttonBuilder);
-                            await modal.RespondAsync($"На дату {dateParse.ToString("dd.MM.yyyy")} уже назначен праздник {foundInfo.Name}!", new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
-                        }
-                    }
-                }
-            }
-            if (nameParse.Length == 0)
-            {
-                EmbedButtonMenus.ApplyHolidayControl(embedBuilder, buttonBuilder);
-                await modal.RespondAsync("Ошибка наименования праздника", new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
-            }
-            else
-            {
-                if (DataBank.UnionInfo.Holidays.Any(x => x.Name.ToLower().Equals(nameParse)))
-                {
-                    EmbedButtonMenus.ApplyHolidayControl(embedBuilder, buttonBuilder);
-                    await modal.RespondAsync("Праздник с похожим названием уже сущетсвует", new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
-                }
-                else
-                {
-                    DataBank.UnionInfo.AddHoliday(nameParse, dateParse);
-                    EmbedButtonMenus.ApplyHolidayControl(embedBuilder, buttonBuilder);
-                    await modal.RespondAsync($"Праздник '{nameParse}' назначен на {dateParse.ToString("dd.MM.yyyy")}!", new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
-                }
-            }
-            break;
-        case "EmilMaksudovInvestmentModal":
-        case "EmilMumdzhiInvestmentModal":
-        case "NikitaInvestmentModal":
-        case "GeneralInvestmentModal":
-            switch (modal.Data.CustomId)
-            {
-                case "EmilMaksudovInvestment":
-                    currentMember = UnionMember.EmilMaksudov;
-                    break;
-                case "EmilMumdzhiInvestment":
-                    currentMember = UnionMember.EmilMumdzhi;
-                    break;
-                case "NikitaInvestment":
-                    currentMember = UnionMember.NikitaGordeev;
-                    break;
-                case "GeneralInvestment":
-                    currentMember = UnionMember.General;
-                    break;
-            }
-            decimal inputAddMoney = 0;
-            string? descriptionAdd = null;
-            foreach (SocketMessageComponentData data in modal.Data.Components)
-            {
-                if (data.CustomId.EndsWith("Input"))
-                {
-                    if (decimal.TryParse(componentData.Value.Replace(",", "."), out inputAddMoney))
-                    {
-                        if (inputAddMoney <= 0)
-                        {
-                            EmbedButtonMenus.ApplyMoneyControl(embedBuilder, buttonBuilder);
-                            await modal.RespondAsync("Зачиление не может быть 0 или отрицательным числом. Для этого используйте списания", new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
-                            return;
-                        }
-                    }
-                    else
-                    {
-                        EmbedButtonMenus.ApplyMoneyControl(embedBuilder, buttonBuilder);
-                        await modal.RespondAsync("Не удалось преоразовать в число, извините.", new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
-                        return;
-                    }
-                }
-                else
-                {
-                    descriptionAdd = data.Value;
-                }
-            }
-            DataBank.UnionInfo.ExecuteAddition(currentMember, inputAddMoney, descriptionAdd);
-            EmbedButtonMenus.ApplyMoneyControl(embedBuilder, buttonBuilder);
-            await modal.RespondAsync("Успешно зачислено", new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
-            break;
-        case "EmilMaksudovSpendModal":
-        case "EmilMumdzhiSpendModal":
-        case "NikitaSpendModal":
-        case "GeneralSpendModal":
-            switch (modal.Data.CustomId)
-            {
-                case "EmilMaksudovSpend":
-                    currentMember = UnionMember.EmilMaksudov;
-                    break;
-                case "EmilMumdzhiSpend":
-                    currentMember = UnionMember.EmilMumdzhi;
-                    break;
-                case "NikitaSpend":
-                    currentMember = UnionMember.NikitaGordeev;
-                    break;
-                case "GeneralSpend":
-                    currentMember = UnionMember.General;
-                    break;
-            }
-            decimal inputSpendMoney = 0;
-            string? descriptionSpend = null;
-            foreach (SocketMessageComponentData data in modal.Data.Components)
-            {
-                if (data.CustomId.EndsWith("Input"))
-                {
-                    if (decimal.TryParse(componentData.Value.Replace(",", "."), out inputSpendMoney))
-                    {
-                        if (inputSpendMoney > 0)
-                        {
-                            if (DataBank.UnionInfo.Money < inputSpendMoney)
-                            {
-                                EmbedButtonMenus.ApplyMoneyControl(embedBuilder, buttonBuilder);
-                                await modal.RespondAsync("На счету недостаточно средств.", new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
-                                return;
-                            }
-                        }
-                        else
-                        {
-                            EmbedButtonMenus.ApplyMoneyControl(embedBuilder, buttonBuilder);
-                            await modal.RespondAsync("Зачиление не может быть 0 или отрицательным числом. Для этого используйте списания", new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
-                            return;
-                        }
-                    }
-                    else
-                    {
-                        EmbedButtonMenus.ApplyMoneyControl(embedBuilder, buttonBuilder);
-                        await modal.RespondAsync("Не удалось преоразовать в число, извините.", new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
-                        return;
-                    }
-                }
-                else
-                {
-                    descriptionSpend = data.Value;
-                }
-            }
-            if (DataBank.UnionInfo.ExecuteWaste(currentMember, inputSpendMoney, descriptionSpend))
-            {
-                EmbedButtonMenus.ApplyMoneyControl(embedBuilder, buttonBuilder);
-                await modal.RespondAsync("Успешно снято", new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
-            }
-            else
-            {
-                EmbedButtonMenus.ApplyMoneyControl(embedBuilder, buttonBuilder);
-                await modal.RespondAsync("Ошибка снятия", new Embed[1] { embedBuilder.Build() }, components: buttonBuilder.Build());
-            }
-            break;
+        await modalActions[modal.Data.CustomId].Invoke(modal);
     }
 }
 
@@ -410,16 +144,17 @@ async Task HandleSelectMenu(SocketMessageComponent component)
     {
         return; //<-- Для избежания ошибки
     }
-    switch (component.Data.CustomId)
+    if (selectMenuActions.ContainsKey(component.Data.CustomId))
     {
-        case "InvestmentMenu":
-            await component.RespondWithModalAsync(EmbedButtonMenus.ApplyInestment(component.Data.Values.First()).Build());
-            await component.Message.DeleteAsync();
-            break;
-        case "SpendMenu":
-            await component.RespondWithModalAsync(EmbedButtonMenus.ApplySpend(component.Data.Values.First()).Build());
-            await component.Message.DeleteAsync();
-            break;
+        await selectMenuActions[component.Data.CustomId].Invoke(component);
+    }
+}
+
+async Task SlashCommandHandler(SocketSlashCommand command)
+{
+    if (commandActions.ContainsKey(command.Data.Name))
+    {
+        await commandActions[command.Data.Name].Invoke(command);
     }
 }
 
@@ -442,47 +177,4 @@ async void CheckTodayHoliday(object? sender, ElapsedEventArgs e)
     DateTime TimeToExecuteTask = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day + 1, 12, 0, 0);
     holidayCheckTimer.Interval = (TimeToExecuteTask - DateTime.Now).TotalMilliseconds;
     holidayCheckTimer.Start();
-}
-
-async Task SlashCommandHandler(SocketSlashCommand command)
-{
-    switch (command.Data.Name)
-    {
-        case "fin":
-            EmbedBuilder finEmbedBuilder = new EmbedBuilder();
-            ComponentBuilder finbButtonBuilder = new ComponentBuilder();
-            EmbedButtonMenus.ApplyInfoMenu(finEmbedBuilder, finbButtonBuilder);
-            await command.RespondAsync(null, new Embed[1] { finEmbedBuilder.Build() }, components: finbButtonBuilder.Build());
-            break;
-        case "seleb":
-            EmbedBuilder selebEmbedBuilder = new EmbedBuilder();
-            ComponentBuilder selebButtonBuilder = new ComponentBuilder();
-            EmbedButtonMenus.ApplyHolidayControl(selebEmbedBuilder, selebButtonBuilder);
-            await command.RespondAsync(null, new Embed[1] { selebEmbedBuilder.Build() }, components: selebButtonBuilder.Build());
-            break;
-        case "info":
-            EmbedBuilder infoEmbedBuilder = new EmbedBuilder();
-            ComponentBuilder infoButtonBuilder = new ComponentBuilder();
-            EmbedButtonMenus.ApplyInfoMenu(infoEmbedBuilder, infoButtonBuilder);
-            await command.RespondAsync(null, new Embed[1] { infoEmbedBuilder.Build() }, components: infoButtonBuilder.Build());
-            break;
-        case "random":
-            Random random = new Random(Guid.NewGuid().GetHashCode());
-            int number = random.Next(1, 4);
-            string member = "";
-            switch (number)
-            {
-                case 1:
-                    member = "Мумджи Эмиль Шамилевич";
-                    break;
-                case 2:
-                    member = "Гордеев Никита Андреевич";
-                    break;
-                case 3:
-                    member = "Максудов Эмиль Альбертович";
-                    break;
-            }
-            await command.RespondAsync($"Вам выпало число {number}.\nСоответствующий участник: {member}");
-            break;
-    }
 }
