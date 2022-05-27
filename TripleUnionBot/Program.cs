@@ -7,39 +7,10 @@ using TripleUnionBot.MethodClasses;
 
 #region Preparing Components
 Dictionary<string, SelectMenusHandler> selectMenuActions = new Dictionary<string, SelectMenusHandler>();
-selectMenuActions.Add("InvestmentMenu", SelectMenus.InvestmentMenu);
-selectMenuActions.Add("SpendMenu", SelectMenus.SpendMenu);
 Dictionary<string, SlashCommandsHandler> commandActions = new Dictionary<string, SlashCommandsHandler>();
-commandActions.Add("fin", Commands.FinCommand);
-commandActions.Add("seleb", Commands.SelebCommand);
-commandActions.Add("info", Commands.InfoCommand);
-commandActions.Add("random", Commands.RandomCommand);
 Dictionary<string, ButtonsHandler> buttonActions = new Dictionary<string, ButtonsHandler>();
-buttonActions.Add("InfoMenu", Buttons.InfoMenu);
-buttonActions.Add("MoneyControl", Buttons.MoneyControl);
-buttonActions.Add("CreditsControl", Buttons.CreditsControl);
-buttonActions.Add("HolidayControl", Buttons.HolidayControl);
-buttonActions.Add("AddHoliday", Buttons.AddHoliday);
-buttonActions.Add("RemoveHoliday", Buttons.RemoveHoliday);
-buttonActions.Add("AddMoneyMenu", Buttons.AddMoneyMenu);
-buttonActions.Add("SpendMoneyMenu", Buttons.SpendMoneyMenu);
-buttonActions.Add("SetPercent", Buttons.SetPercent);
-buttonActions.Add("Settings", Buttons.Settings);
-buttonActions.Add("SetCurrentChannel", Buttons.SetCurrentChannel);
-buttonActions.Add("SetDefault", Buttons.SetDefault);
-buttonActions.Add("ListHoliday", Buttons.ListHoliday);
 Dictionary<string, ModalsHandler> modalActions = new Dictionary<string, ModalsHandler>();
-modalActions.Add("PercentModal", Modals.PercentModal);
-modalActions.Add("HolidayRemoveModal", Modals.HolidayRemoveModal);
-modalActions.Add("HolidayAddModal", Modals.HolidayAddModal);
-modalActions.Add("EmilMaksudovInvestmentModal", Modals.InvestmentModal);
-modalActions.Add("EmilMumdzhiInvestmentModal", Modals.InvestmentModal);
-modalActions.Add("NikitaInvestmentModal", Modals.InvestmentModal);
-modalActions.Add("GeneralInvestmentModal", Modals.InvestmentModal);
-modalActions.Add("EmilMaksudovSpendModal", Modals.InvestmentModal);
-modalActions.Add("EmilMumdzhiSpendModal", Modals.InvestmentModal);
-modalActions.Add("NikitaSpendModal", Modals.InvestmentModal);
-modalActions.Add("GeneralSpendModal", Modals.InvestmentModal);
+ConfigureDictionaries();
 #endregion
 
 #region Main Block
@@ -76,6 +47,43 @@ void ConfigureEvents()
     _client.ModalSubmitted += HandleModalSubmit; //<-- Настройка обработки вопросов
     _client.ButtonExecuted += HandleButtonClick; //<-- Настройка обработки кнопок
     _client.SelectMenuExecuted += HandleSelectMenu; //<-- Найтройка обработки выпадающих меню
+}
+
+void ConfigureDictionaries()
+{
+    selectMenuActions.Add("InvestmentMenu", SelectMenus.InvestmentMenu);
+    selectMenuActions.Add("SpendMenu", SelectMenus.SpendMenu);
+
+    commandActions.Add("fin", Commands.FinCommand);
+    commandActions.Add("seleb", Commands.SelebCommand);
+    commandActions.Add("info", Commands.InfoCommand);
+    commandActions.Add("random", Commands.RandomCommand);
+
+    buttonActions.Add("InfoMenu", Buttons.InfoMenu);
+    buttonActions.Add("MoneyControl", Buttons.MoneyControl);
+    buttonActions.Add("CreditsControl", Buttons.CreditsControl);
+    buttonActions.Add("HolidayControl", Buttons.HolidayControl);
+    buttonActions.Add("AddHoliday", Buttons.AddHoliday);
+    buttonActions.Add("RemoveHoliday", Buttons.RemoveHoliday);
+    buttonActions.Add("AddMoneyMenu", Buttons.AddMoneyMenu);
+    buttonActions.Add("SpendMoneyMenu", Buttons.SpendMoneyMenu);
+    buttonActions.Add("SetPercent", Buttons.SetPercent);
+    buttonActions.Add("Settings", Buttons.Settings);
+    buttonActions.Add("SetCurrentChannel", Buttons.SetCurrentChannel);
+    buttonActions.Add("SetDefault", Buttons.SetDefault);
+    buttonActions.Add("ListHoliday", Buttons.ListHoliday);
+
+    modalActions.Add("PercentModal", Modals.PercentModal);
+    modalActions.Add("HolidayRemoveModal", Modals.HolidayRemoveModal);
+    modalActions.Add("HolidayAddModal", Modals.HolidayAddModal);
+    modalActions.Add("EmilMaksudovInvestmentModal", Modals.InvestmentModal);
+    modalActions.Add("EmilMumdzhiInvestmentModal", Modals.InvestmentModal);
+    modalActions.Add("NikitaInvestmentModal", Modals.InvestmentModal);
+    modalActions.Add("GeneralInvestmentModal", Modals.InvestmentModal);
+    modalActions.Add("EmilMaksudovSpendModal", Modals.InvestmentModal);
+    modalActions.Add("EmilMumdzhiSpendModal", Modals.InvestmentModal);
+    modalActions.Add("NikitaSpendModal", Modals.InvestmentModal);
+    modalActions.Add("GeneralSpendModal", Modals.InvestmentModal);
 }
 
 async Task StartBot()
